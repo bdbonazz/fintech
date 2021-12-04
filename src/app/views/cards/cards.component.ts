@@ -1,6 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatDrawer } from '@angular/material/sidenav';
+import { Router } from '@angular/router';
+import { BehaviorSubject } from 'rxjs';
+import { withLatestFrom } from 'rxjs/operators';
 import { CardsService } from 'src/app/api/cards.service';
 import { avaibleStyle, NotificationService } from 'src/app/core/services/notification.service';
 import { Card, CardForm } from 'src/app/models/card';
@@ -11,7 +14,7 @@ import { CardFormComponent } from './card-form.component';
   template: `
   <mat-drawer-container style="height: 100%; padding: 20px">
   <ft-card-list
-  [cards]="cards"
+  [cards]="cards$ | async"
   (NewCard)="drawer.toggle()"
   (Delete)="deleteCard($event)"
   (Details)="cardDetail($event)"
@@ -33,17 +36,14 @@ export class CardsComponent implements OnInit {
   @ViewChild('drawer', { read: MatDrawer }) drawerRef!: MatDrawer;
   @ViewChild('cardForm', { read: CardFormComponent }) cardFormRef!: CardFormComponent;
 
-  cards: Card[] | null = null;
+  cards$ = new BehaviorSubject<Card[]>([]);
 
-  constructor(public notificationService: NotificationService, private cardService: CardsService)
+  constructor(public notificationService: NotificationService, private cardService: CardsService, private router: Router)
   {
-    cardService.getCards().subscribe(
-      res => {
-      this.cards = res
-    },
-    err => console.log(err),
-    () => {}
-    );
+    cardService.getCards().subscribe({
+      next: res => this.cards$.next(res),
+      error : err => console.error(err)
+    });
   }
 
   ngOnInit(): void {
@@ -51,38 +51,44 @@ export class CardsComponent implements OnInit {
 
   deleteCard(cardID: string)
   {
-    this.cardService.deleteCard(cardID).subscribe(res => {
-      if(res) {
-        this.cards = this.cards.filter(x => x._id !== cardID);
-        this.openSnackBar('Carta Rimossa con Successo')
-      }
-      else {
-        this.openSnackBar("C'è stato un problema nella rimozione della carta'", 'danger')
-      }
-    },
-    err => console.log(err),
-    () => {});
+    this.cardService.deleteCard(cardID).pipe(
+      withLatestFrom(this.cards$)
+    ).subscribe({
+      next: ([success, cards]) => {
+        if(success) {
+          this.cards$.next(cards.filter(x => x._id !== cardID));
+          this.openSnackBar('Carta Rimossa con Successo')
+        }
+        else {
+          this.openSnackBar("C'è stato un problema nella rimozione della carta'", 'danger')
+        }
+      },
+      error: err => console.error(err)
+    });
   }
 
   cardDetail(cardID: string)
   {
-    //ToDo
     console.log(cardID);
+    this.router.navigate(['dashboard','movements',cardID])
   }
 
   saveCard(newCard: CardForm){
     console.log(newCard);
-    this.cardService.addCard(newCard).subscribe(
-      res => {
-      this.cards = [...this.cards, res];
-      this.pulisciForm();
-      this.openSnackBar('Carta Aggiunta con Successo');
-      },
-      err => {
-        console.log(err);
-        this.openSnackBar("C'è stato un problema nel salvataggio della carta", 'danger');
-      },
-      () => {}
+    this.cardService.addCard(newCard).pipe(
+      withLatestFrom(this.cards$)
+    ).subscribe(
+      {
+        next: ([addedCard, cards]) => {
+          this.cards$.next([...cards, addedCard]);
+          this.pulisciForm();
+          this.openSnackBar('Carta Aggiunta con Successo');
+        },
+        error: err => {
+          console.error(err);
+          this.openSnackBar("C'è stato un problema nel salvataggio della carta", 'danger');
+        }
+      }
     );
   }
 

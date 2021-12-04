@@ -1,14 +1,17 @@
-import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
-import {  FormBuilder, Validators } from '@angular/forms';
+import { Component } from '@angular/core';
+import { FormBuilder, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
+import { BehaviorSubject } from 'rxjs';
 import { CardsService } from 'src/app/api/cards.service';
 import { TransferService } from 'src/app/api/transfer.service';
 import { NotificationService } from 'src/app/core/services/notification.service';
 import { Card } from 'src/app/models/card';
 import { Contact } from 'src/app/models/contact';
 import { DialogOverviewComponent } from 'src/app/shared/utils/dialog-overview.component';
-import { checkField, checkFieldReactive } from 'src/app/shared/utils/utils';
+import { checkFieldReactive } from 'src/app/shared/utils/utils';
+import { amountValidator } from 'src/app/shared/validators/amount.validator';
+import { CardIDValidator } from 'src/app/shared/validators/cardID.validator';
+import { TransferValidator } from 'src/app/shared/validators/transfer.validator';
 import { ContactComponent } from '../contact/contact.component';
 
 @Component({
@@ -37,15 +40,19 @@ import { ContactComponent } from '../contact/contact.component';
     <br>
     <mat-form-field appearance="fill" class="fullWidth">
       <mat-label>IBAN</mat-label>
-      <input type="text" required formControlName="iban" placeholder="IT00H0000000000000000000000" [ngClass]="cF('iban')" matInput >
-      <mat-error>
+      <input type="text" required ftIbanValidator formControlName="iban" placeholder="IT00H0000000000000000000000"
+      [ngClass]="cF('iban')" matInput >
+      <mat-error *ngIf="ibanErrors?.required">
       IBAN richiesto
+      </mat-error>
+      <mat-error *ngIf="!ibanErrors?.required && ibanErrors?.iban">
+      IBAN non corretto
       </mat-error>
     </mat-form-field>
     <br>
     <mat-form-field appearance="fill" class="fullWidth">
       <mat-label>Importo</mat-label>
-      <input type="text" required formControlName="surname" placeholder="10.000€" [ngClass]="cF('amount')" matInput >
+      <input type="text" required formControlName="amount" placeholder="10.000€" [ngClass]="cF('amount')" matInput >
       <mat-error>
       Importo richiesto
       </mat-error>
@@ -54,7 +61,7 @@ import { ContactComponent } from '../contact/contact.component';
     <mat-form-field appearance="fill">
       <mat-label>Seleziona una carta</mat-label>
       <mat-select required formControlName="cardId" [ngClass]="cF('cardId')">
-        <mat-option *ngFor="let card of cards" [value]="card._id">
+        <mat-option *ngFor="let card of cards$ | async" [value]="card._id">
           {{card.number}}
         </mat-option>
       </mat-select>
@@ -64,7 +71,8 @@ import { ContactComponent } from '../contact/contact.component';
     </mat-form-field>
     <br>
     <br>
-    <button mat-raised-button color="primary" type="submit" class="btn btn-primary" style="width:100%" [disabled]="form.invalid">
+    <span *ngIf="form.errors?.transfer" style="color:red">{{form.errors.transfer}}</span>
+    <button mat-raised-button color="primary" type="submit" class="btn btn-primary" style="width:100%" [disabled]="!form.valid">
       Trasferisci Denaro
     </button>
     <br>
@@ -83,21 +91,29 @@ export class TransferComponent {
     name: ['', Validators.required],
     surname: ['', Validators.required],
     iban: ['', Validators.required],
-    amount: ['', Validators.required],
-    cardId: ['', Validators.required],
+    amount: ['', amountValidator],
+    cardId: ['', Validators.required, CardIDValidator],
+  },
+  {
+    asyncValidators: this.transferValidator.validate('cardId', 'amount')
   });
 
-  cards: Card[] | null = null;
+  public get ibanErrors() {
+    return this.form.get('iban').errors;
+  }
+
+  cards$ = new BehaviorSubject<Card[]>([]);
   constructor(
     private cardService: CardsService,
     private transferService: TransferService,
     public notificationService: NotificationService,
+    private transferValidator: TransferValidator,
     public dialog: MatDialog,
     private fb: FormBuilder)
   {
     cardService.getCards()
       .subscribe({
-        next: res => this.cards = res,
+        next: res => this.cards$.next(res),
         error: err => console.error(err)
       });
   }

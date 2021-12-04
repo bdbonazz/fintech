@@ -1,5 +1,8 @@
 import { Component } from '@angular/core';
 import { NgForm } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AuthService } from 'src/app/api/auth.service';
+import { NotificationService } from 'src/app/core/services/notification.service';
 
 @Component({
   selector: 'ft-login',
@@ -10,7 +13,7 @@ import { NgForm } from '@angular/forms';
         <ft-sign-in *ngIf="state == 'signin'" (signin)="signIn($event)"></ft-sign-in>
         <ft-register *ngIf="state == 'register'" (register)="register($event)"></ft-register>
         <br>
-        <span style="text-decoration: underline" (click)="changeState()" >{{state == 'signin' ? "Crea un nuovo account" : "Hai già un Account? Accedi"}}</span>
+        <span class="pointer" style="text-decoration: underline" (click)="changeState()" >{{state == 'signin' ? "Crea un nuovo account" : "Hai già un Account? Accedi"}}</span>
       </div>
     </div>
   </div>
@@ -21,6 +24,7 @@ import { NgForm } from '@angular/forms';
 export class LoginComponent{
   state: 'signin' | 'register' = 'signin'
 
+  constructor(public notificationService: NotificationService, private authService: AuthService, private router: Router){}
   changeState(){
     if (this.state == 'signin')
       this.state = 'register';
@@ -28,13 +32,36 @@ export class LoginComponent{
       this.state = 'signin';
   }
 
-  signIn(form: NgForm)
+  signIn(form: any)
   {
+    //TODO
     console.log(form.value);
+    this.authService.login('form.' ,'').subscribe({
+      next: (res) => {
+        if(res) {
+            this.router.navigateByUrl('/dashboard');
+        }
+        else {
+          this.notificationService.show('User not Found', 'warning');
+        }
+      },
+      error: err => console.error(err)
+    })
   }
 
-  register(form: NgForm)
+  register(form: any)
   {
-    console.log(form.value);
+    console.log(form);
+    this.authService.register(form).subscribe({
+      next: (res) => {
+        if(res) {
+            this.state = 'signin'
+        }
+        else {
+          this.notificationService.show('Error', 'warning');
+        }
+      },
+      error: err => console.error(err)
+    })
   }
 }

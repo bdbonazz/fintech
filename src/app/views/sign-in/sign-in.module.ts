@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { CommonModule, registerLocaleData } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { SignInComponent } from './sign-in.component';
 import { MaterialSharedModule } from 'src/app/shared/material/material.module';
 import { RouterModule } from '@angular/router';

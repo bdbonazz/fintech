@@ -9,11 +9,20 @@ export function checkFieldReactive(input: AbstractControl) {
 }
 
 //String
-export function ToString(input: string) : string {
-  return input ? input : '';
+export function ToString(input: any) : string {
+  return input ? input.toString() : '';
 }
-export function EqualsIgnoreCase(input: string, input2: string) : boolean {
-  return ToString(input).toLowerCase() === ToString(input2).toLowerCase();
+export function GetKey(input: any) : string {
+  return ToString(input).trim().toLowerCase();
+}
+export function EqualsIgnoreCase(input: any, input2: any) : boolean {
+  return GetKey(input) === GetKey(input2);
+}
+
+//Number
+export function ToNumber(input: any) : number {
+  const tempo = GetKey(input);
+  return tempo ? +tempo : 0;
 }
 
 //DateTime

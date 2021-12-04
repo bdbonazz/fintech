@@ -6,7 +6,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 })
 export class ShortStringPipe implements PipeTransform {
   constructor() {}
-  descLen = 15;
+  descLen = 50;
   transform(key: string): string {
     return key
     ? key.length > this.descLen

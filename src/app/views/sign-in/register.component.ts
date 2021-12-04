@@ -1,5 +1,6 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { NgForm, NgModel } from '@angular/forms';
+import { ParentErrorStateMatcher } from 'src/app/shared/errorStateMatcher/parentErrorStateMatcher';
 import { checkField } from 'src/app/shared/utils/utils';
 
 @Component({
@@ -41,8 +42,8 @@ import { checkField } from 'src/app/shared/utils/utils';
         <mat-label>Password</mat-label>
         <mat-icon matPrefix>lock</mat-icon>
         <input [type]="GetPwType()" required [ngModel] name="password" placeholder="Password" #password="ngModel"
-        [ngClass]="cF(password)" matInput (change)="PassWordMatch($event.target.value, password2.value)" >
-        <mat-icon matSuffix (input)="showPassword = !showPassword">{{showPassword ? "visibility_off" : "visibility"}}</mat-icon>
+        [ngClass]="cF(password)" matInput [errorStateMatcher]="passwordMatcher" >
+        <mat-icon matSuffix class="pointer" (click)="showPassword = !showPassword">{{showPassword ? "visibility_off" : "visibility"}}</mat-icon>
         <mat-error *ngIf="password.invalid && password.touched">
         Password richiesta
         </mat-error>
@@ -52,17 +53,17 @@ import { checkField } from 'src/app/shared/utils/utils';
         <mat-label>Ripeti la Password</mat-label>
         <mat-icon matPrefix>lock</mat-icon>
         <input [type]="GetPwType()" required [ngModel] name="password2" placeholder="Password" #password2="ngModel"
-        [ngClass]="cF(password2)" matInput (input)="PassWordMatch(password.value, $event.target.value)" >
-        <mat-icon matSuffix (click)="showPassword = !showPassword">{{showPassword ? "visibility_off" : "visibility"}}</mat-icon>
+        [ngClass]="cF(password2)" matInput [errorStateMatcher]="passwordMatcher" >
+        <mat-icon matSuffix class="pointer" (click)="showPassword = !showPassword">{{showPassword ? "visibility_off" : "visibility"}}</mat-icon>
         <mat-error *ngIf="password2.invalid && password2.touched">
         Password richiesta
         </mat-error>
       </mat-form-field>
-      <span style="color: red" *ngIf="!matchPassword && password.touched && password2.touched">
+      <span style="color: red" *ngIf="f.errors?.equalField">
           Password Don't Match.
-        </span>
+      </span>
       <br>
-      <button mat-raised-button color="primary" type="submit" class="btn btn-primary" style="width:100%" [disabled]="f.invalid || !matchPassword">
+      <button mat-raised-button color="primary" type="submit" class="btn btn-primary" style="width:100%" [disabled]="!f.valid">
         Accedi
       </button>
     </form>
@@ -74,15 +75,16 @@ import { checkField } from 'src/app/shared/utils/utils';
 })
 export class RegisterComponent {
   @Output() register = new EventEmitter<NgForm>()
-
+z
   showPassword: boolean = false;
-  matchPassword: boolean = true;
+
+  passwordMatcher = new ParentErrorStateMatcher('equalField');
 
   constructor() {
   }
 
   submitHandler(form: NgForm): void {
-    if(!this.PassWordMatch(form.value.password, form.value.password2))
+    if(!form.valid)
       return;
     //console.log(form.value);
     /*this.http.post<any>(environment.apiUrl, form.value)
@@ -98,13 +100,5 @@ export class RegisterComponent {
 
   GetPwType(): string {
     return this.showPassword ? 'text' : 'password';
-  }
-
-  PassWordMatch(pwValue: any, pw2Value: any): boolean {
-    this.matchPassword = false;
-    if(pwValue && pw2Value)
-      this.matchPassword = pwValue === pw2Value;
-
-    return this.matchPassword;
   }
 }

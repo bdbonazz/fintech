@@ -1,13 +1,20 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { Contact } from 'src/app/models/contact';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialogRef } from '@angular/material/dialog';
+import { ContactsService } from 'src/app/api/contacts.service';
+import { avaibleStyle, NotificationService } from 'src/app/core/services/notification.service';
+import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
+import { map, switchMap, take, withLatestFrom } from 'rxjs/operators';
+
+export type State = { type: 'list', id: string } | { type: 'new' } | { type: 'edit', id: string }
 
 @Component({
   selector: 'ft-contact',
   template: `
-  <ng-container *ngIf="state === 'select'">
+  <div *ngIf="state$ | async as state">
+    <ng-container *ngIf="state.type === 'list'">
       <ft-contact-list
-        [contacts]="contacts"
+        [contacts]="contacts$ | async"
         (delete)="removeContactHanlder($event)"
         (edit)="editContactHanlder($event)"
         (select)="selectContactHanlder($event)"
@@ -18,69 +25,135 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
       type="button"
       class="btn btn-primary"
       style="width:100%"
-      (click)="state = 'create'">
+      (click)="state$.next({ type: 'new'})">
         Nuovo contatto
       </button>
     </ng-container>
-    <ng-container *ngIf="state === 'create'">
-       <button mat-stroked-button (click)="backToList()">Indietro</button>
+    <ng-container *ngIf="state.type === 'new' || state.type === 'edit'">
       <ft-contact-form
-        [contact]="contactToEdit"
+        [contact]="selectedContact$ | async"
         (saveContact)="saveContactHanlder($event)"
+        (close)="backToList()"
       ></ft-contact-form>
     </ng-container>
+  </div>
   `,
   styles: [
   ]
 })
-export class ContactComponent implements OnInit {
+export class ContactComponent implements OnDestroy {
+  sub = new Subscription();
 
-  state: 'select' | 'create' = 'select';
-  contacts: Contact[] = [
-    {
-      _id: 'ciao',
-      iban: '111',
-      name: 'William',
-      surname: 'Bonazzoli'
-    }
-  ];
-  contactToEdit: Contact | null = null;
-  constructor(public dialogRef: MatDialogRef<ContactComponent>) {
-    console.log(this.state);
-   }
+  contacts$ = new BehaviorSubject<Contact[]>([]);
+  state$ = new BehaviorSubject<State>({ type: 'list', id: '' })
 
-  ngOnInit(): void {
-    console.log(this.state);
+  selectedContact$ = combineLatest([this.contacts$, this.state$]).pipe(
+    map(([contacts, state]) => {
+      console.log(state)
+      if(state.type === 'new') {
+        return null;
+      }
+
+      const index = contacts.findIndex(x => x._id === state.id);
+      return index >= 0 ? contacts[index] : null;
+    })
+  );
+
+  constructor(public notificationService: NotificationService, public dialogRef: MatDialogRef<ContactComponent>, private contactService : ContactsService) {
+    contactService.getContacts().subscribe({
+      next: res => this.contacts$.next(res),
+      error: err => console.error(err)
+    })
+  }
+
+  ngOnDestroy(): void {
+    this.sub.unsubscribe();
   }
 
   selectContactHanlder(_id: string) {
-    console.log(_id);
-    this.dialogRef.close(this.getSelectedContact(_id));
+    this.state$.next({ type: 'list', id: _id});
+    console.log('qui')
+    this.selectedContact$.pipe(
+      take(1)
+      ).subscribe({
+        next: res => {
+          console.log(res);
+          this.dialogRef.close(res);
+        },
+        error: err => console.error(err)
+      })
   }
 
-
   removeContactHanlder(_id: string) {
-    this.contacts = this.contacts.filter(x => x._id !== _id)
+    this.contactService.deleteContact(_id).pipe(
+      withLatestFrom(this.contacts$)
+    ).subscribe({
+      next: ([success, contacts]) => {
+        if (success) {
+          this.contacts$.next(contacts.filter(x => x._id !== _id))
+        }
+        else {
+          this.openSnackBar("C'è stato un errore");
+        }
+      },
+      error: err => {
+        this.openSnackBar("C'è stato un errore");
+        console.error(err);
+      }
+    });
   }
 
   editContactHanlder(_id: string) {
-    this.state = 'create';
-    this.contactToEdit = this.getSelectedContact(_id)
+    this.state$.next({ type: 'edit', id: _id});
   }
 
-  saveContactHanlder(contact: Contact) {
-    this.contacts = this.contactToEdit
-      ? this.contacts.map(x => x._id === contact._id ? contact : x)
-      : this.contacts = [...this.contacts, contact];
-      this.backToList();
+  private editContact(contact: Partial<Contact>) : Observable<Contact[]>
+  {
+    return  this.selectedContact$.pipe(
+      take(1),
+      map(res => Object.assign({}, res, contact)),
+      switchMap(res => this.contactService.patchContact(res)),
+      withLatestFrom(this.contacts$),
+      map(([patchedContat, contacts]) => contacts.map(x => x._id === patchedContat._id ? patchedContat : x))
+      )
+  }
+
+  private newContact(contact: Partial<Contact>) : Observable<Contact[]>
+  {
+    return  this.contactService.addContact(contact).pipe(
+      withLatestFrom(this.contacts$),
+      map(([newContact, contacts]) => [...contacts, newContact])
+    )
+  }
+
+  saveContactHanlder(contact: Partial<Contact>) {
+    this.state$.pipe(
+      take(1),
+      switchMap((res : State) => {
+        switch(res.type)
+        {
+          case 'edit': return this.editContact(contact);
+          case 'new': return this.newContact(contact);
+          default: return this.contacts$;
+        }
+      })
+    ).subscribe({
+      next: res => {
+        this.contacts$.next(res);
+        this.backToList();
+      },
+      error: err => {
+        this.openSnackBar("C'è stato un errore");
+        console.error(err);
+      }
+    });
   }
 
   backToList(){
-    this.state = 'select';
-    this.contactToEdit = null;
+    this.state$.next({ type: 'list', id: '' });
   }
 
-  getSelectedContact(_id: string) : Contact{
-    return this.contacts[this.contacts.findIndex(x => x._id === _id)];
+  openSnackBar(message: string, style: avaibleStyle = 'success') {
+    this.notificationService.show(message, style)
   }
 }

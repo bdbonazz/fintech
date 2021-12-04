@@ -18,7 +18,7 @@ import { checkField } from 'src/app/shared/utils/utils';
       <mat-icon matPrefix>lock</mat-icon>
       <input [type]="GetPwType()" required [ngModel] name="password" placeholder="Password" #password="ngModel"
       [ngClass]="cF(password)" matInput >
-      <mat-icon matSuffix (click)="showPassword = !showPassword">{{showPassword ? "visibility_off" : "visibility"}}</mat-icon>
+      <mat-icon class="pointer" matSuffix (click)="showPassword = !showPassword">{{showPassword ? "visibility_off" : "visibility"}}</mat-icon>
     </mat-form-field>
     <br>
     <button mat-raised-button color="primary" type="submit" class="btn btn-primary" style="width:100%" [disabled]="f.invalid">
@@ -36,7 +36,8 @@ export class SignInComponent {
   @Output() signin = new EventEmitter<NgForm>()
   showPassword: boolean = false;
 
-  constructor() {
+  constructor()
+  {
   }
 
   submitHandler(form: NgForm): void {

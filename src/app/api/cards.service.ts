@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Card, CardForm } from '../models/card';
+import { CardMovements, Movement } from '../models/movement';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +16,7 @@ export class CardsService {
     return this.http.get<Card[]>(environment.apiUrl + '/cards');
   }
 
-  getMovements(cardId: string, limit: number, offset: number): Observable<Card[]> {
+  getMovements(cardId: string, limit: number, offset: number): Observable<CardMovements> {
     let params: string = '';
     if(limit || offset)
     {
@@ -30,7 +31,7 @@ export class CardsService {
         params += "offset=" + offset;
       }
     }
-    return this.http.get<Card[]>(environment.apiUrl + '/cards/' + cardId + "/movements" + params);
+    return this.http.get<CardMovements>(environment.apiUrl + '/cards/' + cardId + "/movements" + params);
   }
 
   addCard(card: CardForm): Observable<Card> {

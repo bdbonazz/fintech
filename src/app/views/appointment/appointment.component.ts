@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 import { MatDrawer } from '@angular/material/sidenav';
 import { avaibleStyle, NotificationService } from 'src/app/core/services/notification.service';
@@ -6,6 +6,8 @@ import { DayWithSlot, DayWithSlots, Location, slot } from 'src/app/models/locati
 import { MatDialog } from '@angular/material/dialog';
 import { DialogOverviewComponent } from 'src/app/shared/utils/dialog-overview.component';
 import { AppointmentsService } from 'src/app/api/appointments.service';
+import { BehaviorSubject, combineLatest, Subscription } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'ft-appointment',
@@ -13,13 +15,13 @@ import { AppointmentsService } from 'src/app/api/appointments.service';
     <mat-drawer-container style="height: 100%; padding: 20px">
       <mat-list>
         <div mat-subheader>Carte</div>
-        <mat-list-item *ngFor="let location of locations" (click)="LocationClick(location._id)" style="cursor: pointer">
+        <mat-list-item *ngFor="let location of locations$ | async" (click)="LocationClick(location._id)" style="cursor: pointer">
           <mat-icon mat-list-icon>home</mat-icon>
           <div mat-line>{{location.name}}<br>{{location.address}}</div>
         </mat-list-item>
       </mat-list>
-      <mat-drawer #drawer mode="side" position="end" style="padding: 20px">
-        <ft-maps *ngIf="selectedLocation" [coords]="selectedLocation.coords" [zoom]="3"></ft-maps>
+      <mat-drawer #drawer mode="side" position="end" style="padding: 20px" *ngIf="selectedLocation$ | async as selectedLocation">
+        <ft-maps  [coords]="selectedLocation.coords" [zoom]="3"></ft-maps>
         <mat-form-field appearance="fill">
           <mat-label>Scegli una data</mat-label>
           <input matInput [matDatepickerFilter]="myFilter" [matDatepicker]="picker" readonly="true"
@@ -43,11 +45,20 @@ import { AppointmentsService } from 'src/app/api/appointments.service';
   styles: [
   ]
 })
-export class AppointmentComponent {
+export class AppointmentComponent implements OnDestroy{
+  sub = new Subscription();
 
   @ViewChild('drawer', { read: MatDrawer }) drawerRef!: MatDrawer;
-  locations: Location[] | null = null;
-  selectedLocation: Location | null = null;
+
+  locations$ = new BehaviorSubject<Location[]>([]);
+  selectedLocationId$ = new BehaviorSubject<string>('');
+
+  selectedLocation$ = combineLatest([this.locations$, this.selectedLocationId$]).pipe(
+    map(([locations, selectedLocationId]) => {
+      const index = locations.findIndex(x => x._id === selectedLocationId);
+      return index >= 0 ? locations[index] : null;
+    })
+  );
 
   /*
   //Test Funzionamento Chiusura per Giorni della Settimana
@@ -61,7 +72,7 @@ export class AppointmentComponent {
       closedDays: [1, 2, 3]
     },
   ];*/
-  avaibleSlots: DayWithSlots[] | null = null;
+  daysWithSlots$ = new BehaviorSubject<DayWithSlots[]>([]);
   selectedSlot: DayWithSlots | null;
 
   /*
@@ -75,24 +86,34 @@ export class AppointmentComponent {
   };*/
 
   constructor(public notificationService: NotificationService, public dialog: MatDialog, private appointmentService: AppointmentsService) {
-    appointmentService.getLocations().subscribe(res => this.locations = res, console.log, () => {});
+    appointmentService.getLocations().subscribe({
+      next: res => this.locations$.next(res),
+      error: err => console.error(err)
+    });
+
+    this.sub.add(this.selectedLocation$.pipe(
+      switchMap(res => this.appointmentService.getSlots(res._id))
+    ).subscribe({
+      next: res => {
+        if(!this.drawerRef.opened){
+          this.drawerRef.toggle();
+        }
+
+        this.daysWithSlots$.next(res);
+      },
+      error: err => console.error(err)
+    }))
    }
 
+  ngOnDestroy(): void {
+    this.sub.unsubscribe();
+  }
+
   LocationClick(locationID: string): void {
-    this.selectedLocation = this.locations.find(x => x._id === locationID)
-    if(this.selectedLocation)
-    {
-      if(!this.drawerRef.opened){
-        this.drawerRef.toggle();
-      }
-      this.appointmentService.getSlots(locationID).subscribe(res => this.avaibleSlots = res, console.log, () => {});
-    }
+    this.selectedLocationId$.next(locationID);
   }
 
   myFilter = (d: Date | null): boolean => {
-    if(!this.selectedLocation){
-      return false;
-    }
     const date = d || new Date();
     const today: number = new Date().getTime();
 
@@ -114,15 +135,17 @@ export class AppointmentComponent {
     const dayToday: number = +valori[0]
     const monthToday: number = +valori[1]
     const yearToday: number = +valori[2]
-    if(this.avaibleSlots)
-      DayOk = this.avaibleSlots.findIndex(x => this.sameDateFromDMY(x.day, dayToday, monthToday, yearToday)) >= 0;
+
+    const daysWithSlots = this.daysWithSlots$.getValue();
+    if(daysWithSlots.length)
+      DayOk = daysWithSlots.findIndex(x => this.sameDateFromDMY(x.day, dayToday, monthToday, yearToday)) >= 0;
 
     return futureDays && DayOk;
   };
 
   dateChange(type: string, event: MatDatepickerInputEvent<Date>) {
     console.log(type);
-    this.selectedSlot = this.avaibleSlots.find(x => this.sameDateFromDate(x.day, event.value));
+    this.selectedSlot = this.daysWithSlots$.getValue().find(x => this.sameDateFromDate(x.day, event.value));
   }
 
   SlotClick(slot: slot)
@@ -155,15 +178,13 @@ export class AppointmentComponent {
             }
           },
           err => {
-            console.log(err);
+            console.error(err);
             this.openSnackBar("C'è stato un problema nel salvataggio dell'appuntamento'", 'danger');
           },
           () => {}
         )
       }
     });
-
-
   }
 
   openSnackBar(message: string, style: avaibleStyle = 'success') {

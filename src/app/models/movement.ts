@@ -7,3 +7,9 @@ export interface Movement {
   cardId: string;
   timestamp: number;
 }
+
+export interface CardMovements
+{
+  data: Movement[];
+  total: number
+}

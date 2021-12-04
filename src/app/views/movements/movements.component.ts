@@ -1,5 +1,7 @@
-import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
+import { filter, map, switchMap } from 'rxjs/operators';
 import { CardsService } from 'src/app/api/cards.service';
 import { Card } from 'src/app/models/card';
 import { Movement } from 'src/app/models/movement';
@@ -10,60 +12,103 @@ import { Movement } from 'src/app/models/movement';
   <div class="containter m-3">
     <mat-form-field appearance="fill">
       <mat-label>Seleziona una carta</mat-label>
-      <mat-select (selectionChange)="changeCard($event.value)">
-        <mat-option *ngFor="let card of cards" [value]="card._id">
+      <mat-select [value]="selectedCardId$ | async" (selectionChange)="changeCard($event.value)">
+        <mat-option *ngFor="let card of cards$ | async" [value]="card._id">
           {{card.number}}
         </mat-option>
       </mat-select>
     </mat-form-field>
     <br>
-    <mat-label *ngIf="selectedCard" style="font-size: larger; font-weight: bold;">Saldo {{selectedCard.amount | currency}}</mat-label>
+    <mat-label *ngIf="selectedCard$ | async as selectedCard" style="font-size: larger; font-weight: bold;">Saldo {{selectedCard.amount | currency}}</mat-label>
     <br>
-    <mat-accordion *ngIf="displayedMovements">
-      <!--<ft-movement *ngFor="let movement of movements" [movement]="movement"></ft-movement>-->
-      <ft-movement *ngFor="let movement of displayedMovements"
-      [date]="movement.timestamp | date"
-      [type]="movement.type"
-      [amount]="movement.amount | currency"
-      [title]="movement.title"
-      [description]="movement.description"
-      ></ft-movement>
-    </mat-accordion>
-    <br>
-    <button mat-button *ngIf="movements && movements.length > movimentiDaMostrare" (click)="LoadMoreMovements()")>Carica Altro</button>
+    <div *ngIf="movements$ | async as movements">
+      <mat-accordion *ngIf="movements.length">
+        <!--<ft-movement *ngFor="let movement of movements" [movement]="movement"></ft-movement>-->
+        <ft-movement *ngFor="let movement of movements"
+        [date]="movement.timestamp | date"
+        [type]="movement.type"
+        [amount]="movement.amount | currency"
+        [title]="movement.title"
+        [description]="movement.description"
+        ></ft-movement>
+      </mat-accordion>
+      <br>
+      <button mat-button *ngIf="shouldLoadMore$ | async" (click)="LoadMoreMovements()">Carica Altro</button>
+    </div>
   </div>
   `,
   styles: [
   ]
 })
-export class MovementsComponent implements OnInit {
+export class MovementsComponent implements OnDestroy {
 
-  cards: Card[] | null = null;
-  selectedCard: Card | null = null;
-  movements: Movement[] | null = null;
-  displayedMovements: Movement[] | null = null;
-  movimentiDaMostrare = 5;
+  sub = new Subscription();
 
-  constructor(private cardService: CardsService)
+  movementsToShowChunkLenght = 5;
+
+  cards$ = new BehaviorSubject<Card[]>([]);
+  selectedCardId$ = new BehaviorSubject<string>('');
+
+  selectedCard$ = combineLatest([this.cards$, this.selectedCardId$]).pipe(
+    map(([cards, cardID]) => {
+      return cards.find(x => x._id === cardID)
+    })
+  );
+
+  movements$ = new BehaviorSubject<Movement[]>([]);
+  total$ = new BehaviorSubject<number>(0);
+
+  shouldLoadMore$ = combineLatest([this.movements$, this.total$]).pipe(
+    map(([movements, total]) => {
+      return total > movements.length;
+    })
+  );
+
+  constructor(private cardService: CardsService, private activatedRoute: ActivatedRoute)
   {
+    console.log(activatedRoute);
     cardService.getCards()
-      .subscribe(res => this.cards = res, err => console.log(err), () => {});
-  }
-  ngOnInit(): void {
+      .subscribe({
+        next: res => this.cards$.next(res),
+        error: err => console.error(err)
+      });
+
+      this.sub.add(
+        this.selectedCard$.pipe(
+          filter(res => !!res),
+          switchMap(res => cardService.getMovements(res._id, this.movementsToShowChunkLenght, 0))
+        )
+        .subscribe({
+          next: res => {
+            this.movements$.next(res.data);
+            this.total$.next(res.total);
+          }
+        })
+      )
+
+      this.sub.add(activatedRoute.params.subscribe({
+        next: res =>{ console.log(res); this.selectedCardId$.next(res.cardId);},
+        error: err => console.error(err)
+      }));
   }
 
   changeCard(cardID: string){
-    this.selectedCard = this.cards.find(x => x._id === cardID);
-    //TODO Ottieni i nuovi movimenti
-    this.showMovements();
-  }
-
-  showMovements(){
-    this.displayedMovements = this.movements.slice(0, this.movimentiDaMostrare);
+    this.selectedCardId$.next(cardID);
   }
 
   LoadMoreMovements(){
-    this.movimentiDaMostrare += 5;
-    this.showMovements();
+    const actualMovements = this.movements$.getValue();
+    this.cardService.getMovements(this.selectedCardId$.getValue(), this.movementsToShowChunkLenght, actualMovements.length)
+      .subscribe({
+        next: res => {
+          this.movements$.next([...actualMovements, ...res.data]);
+          this.total$.next(res.total);
+        },
+        error: err => console.error(err)
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.sub.unsubscribe();
   }
 }

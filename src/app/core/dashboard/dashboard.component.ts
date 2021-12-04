@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { AuthService } from 'src/app/api/auth.service';
+import { UserStore } from '../guards/user.store';
 
 @Component({
   selector: 'ft-dashboard',
@@ -33,7 +35,7 @@ import { Component, OnInit } from '@angular/core';
           </mat-list-item>
           <mat-list-item (click)="LogOut()">
             <mat-icon matListIcon>perm_identity</mat-icon>
-            <h3 matLine>William Bonazzoli</h3>
+            <h3 matLine>{{(userStore.user$ | async).displayName}}</h3>
             <mat-divider></mat-divider>
             <h3 matLine>Logout</h3>
           </mat-list-item>
@@ -56,12 +58,15 @@ import { Component, OnInit } from '@angular/core';
 })
 export class DashboardComponent implements OnInit {
 
-  constructor() {}
+  constructor(public userStore: UserStore, private authService: AuthService) {
+
+  }
 
   ngOnInit(): void {
   }
 
   LogOut(): void{
     console.log('logout');
+    this.authService.logout();
   }
 }

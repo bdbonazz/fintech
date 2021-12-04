@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 
 import { ContactRoutingModule } from './contact-routing.module';
 import { ContactComponent } from './contact.component';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialSharedModule } from 'src/app/shared/material/material.module';
 import { UtilsModule } from 'src/app/shared/utils/utils.module';
 import { ContactListComponent } from './contact-list.component';
@@ -17,6 +17,7 @@ import { MatDialogModule } from '@angular/material/dialog';
     CommonModule,
     ContactRoutingModule,
     FormsModule,
+    ReactiveFormsModule,
     MaterialSharedModule,
     MatDialogModule,
     UtilsModule

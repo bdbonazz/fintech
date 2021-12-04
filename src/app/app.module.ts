@@ -10,6 +10,8 @@ import { MapsModule } from './shared/maps/maps.module';
 import { DashboardModule } from './core/dashboard/dashboard.module';
 import { HomeModule } from './views/home/home.module';
 import { TaxesModule } from './views/taxes/taxes.module';
+import { HttpClientXsrfModule } from '@angular/common/http';
+import { InterceptorModule } from './core/interceptors/interceptor.module';
 
 @NgModule({
   declarations: [
@@ -17,6 +19,7 @@ import { TaxesModule } from './views/taxes/taxes.module';
     NotificationComponent
   ],
   imports: [
+    InterceptorModule,
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
@@ -25,7 +28,11 @@ import { TaxesModule } from './views/taxes/taxes.module';
     MapsModule,
     DashboardModule,
     HomeModule,
-    TaxesModule
+    TaxesModule,
+    HttpClientXsrfModule.withOptions({
+      cookieName: 'XSRF-TOKEN',
+      headerName: 'X-XSRF-TOKEN',
+    })
   ],
   providers: [],
   bootstrap: [AppComponent]

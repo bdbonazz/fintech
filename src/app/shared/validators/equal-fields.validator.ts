@@ -32,7 +32,6 @@ export class EqualFieldValidatorDirective implements Validator {
   @Input() Field2: string
 
   validate(control: AbstractControl): ValidationErrors | null {
-    console.log('qui');
       return equalFieldValidator(this.Field1, this.Field2)(control);
     }
 }

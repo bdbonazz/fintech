@@ -1,6 +1,4 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { stringify } from 'querystring';
-import { Movement } from 'src/app/models/movement';
 
 @Component({
   selector: 'ft-movement',
@@ -22,11 +20,11 @@ import { Movement } from 'src/app/models/movement';
       <mat-expansion-panel-header>
         <mat-panel-title>
           <span style="font-style: italic;">{{date}}</span>
-          <span [style.color]="type === 'out' ? 'red' : 'green'">{{amount}}</span>
-          <span style="font-weight: bold;">{{title}}</span>
+          <span style="padding-left: 15px;" [style.color]="type === 'out' ? 'red' : 'green'">{{amount}}</span>
+          <div style="font-weight: bold; text-align: center; width: 400px;">{{title}}</div>
         </mat-panel-title>
         <mat-panel-description>
-          {{description | shortstring }}
+          <div style="text-align: center;">{{description | shortstring }}</div>
         </mat-panel-description>
       </mat-expansion-panel-header>
       <p>{{description}}</p>
