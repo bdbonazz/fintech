@@ -1,13 +1,9 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { MovementsSelectorUtility } from 'src/app/models/movement';
+import { selectCardsState } from '../../cards/store/cards.selectors';
 import { MovementState } from './movements.reducer';
 
 export const selectFeatureMovement = createFeatureSelector<{movements: MovementState}>('movements');
-
-export const selectCardsState = createSelector(
-  selectFeatureMovement,
-  state => state.movements.cards
-);
 
 export const selectLoadingState = createSelector(
   selectFeatureMovement,

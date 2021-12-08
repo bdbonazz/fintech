@@ -1,11 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroupDirective, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { BehaviorSubject } from 'rxjs';
-import { CardsService } from 'src/app/api/cards.service';
+import { Store } from '@ngrx/store';
 import { TransferService } from 'src/app/api/transfer.service';
 import { NotificationService } from 'src/app/core/services/notification.service';
-import { Card } from 'src/app/models/card';
 import { Contact } from 'src/app/models/contact';
 import { DialogOverviewComponent } from 'src/app/shared/utils/dialog-overview.component';
 import { checkFieldReactive } from 'src/app/shared/utils/utils';
@@ -13,6 +11,8 @@ import { amountValidator } from 'src/app/shared/validators/amount.validator';
 import { CardIDValidator } from 'src/app/shared/validators/cardID.validator';
 import { ibanValidator } from 'src/app/shared/validators/iban.validator';
 import { TransferValidator } from 'src/app/shared/validators/transfer.validator';
+import { loadCards } from '../cards/store/cards.actions';
+import { selectCardsState } from '../cards/store/cards.selectors';
 import { ContactComponent } from '../contact/contact.component';
 
 @Component({
@@ -86,7 +86,7 @@ import { ContactComponent } from '../contact/contact.component';
   styles: [
   ]
 })
-export class TransferComponent {
+export class TransferComponent implements OnInit {
 
   form = this.fb.group({
     name: ['', Validators.required],
@@ -103,31 +103,25 @@ export class TransferComponent {
     return this.form.get('iban').errors;
   }
 
-  cards$ = new BehaviorSubject<Card[]>([]);
+  cards$ = this.store.select(selectCardsState);
   constructor(
-    private cardService: CardsService,
+    private store: Store,
     private transferService: TransferService,
     public notificationService: NotificationService,
     private transferValidator: TransferValidator,
     private cardIDValidator: CardIDValidator,
     public dialog: MatDialog,
-    private fb: FormBuilder)
-  {
-    cardService.getCards()
-      .subscribe({
-        next: res => this.cards$.next(res),
-        error: err => console.error(err)
-      });
-  }
+    private fb: FormBuilder
+    ) { }
+
+  ngOnInit() { this.store.dispatch(loadCards()); }
 
   getContact(): void {
-    const dialogRef = this.dialog.open(ContactComponent, {
+    this.dialog.open(ContactComponent, {
       width: '500px'
-    });
-
-    dialogRef.afterClosed().subscribe((result: Contact) => {
-      if(result)
-      {
+    }).afterClosed()
+    .subscribe((result: Contact) => {
+      if(result) {
         this.form.patchValue({
           name: result.name,
           surname: result.surname,
@@ -138,11 +132,10 @@ export class TransferComponent {
   }
 
   submitHandler(formDirective: FormGroupDirective): void {
-    const dialogRef = this.dialog.open(DialogOverviewComponent, {
+    this.dialog.open(DialogOverviewComponent, {
       width: '250px'
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
+    }).afterClosed()
+    .subscribe(result => {
       if(result)
       {
         this.transferService.addTransfer(this.form.value).subscribe({
@@ -155,15 +148,12 @@ export class TransferComponent {
             }
           }
         });
-
       }
     });
 
   }
 
-  cF(input: string){
-    return checkFieldReactive(this.form.get(input));
-  }
+  cF(input: string) { return checkFieldReactive(this.form.get(input)); }
 
   public cleanup(formDirective: FormGroupDirective){
     this.form.reset();
@@ -174,5 +164,4 @@ export class TransferComponent {
       formDirective.resetForm();
     }
   }
-
 }

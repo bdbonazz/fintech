@@ -2,10 +2,10 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
-import { filter } from 'rxjs/operators';
 import { loadCards } from '../cards/store/cards.actions';
+import { selectCardsState } from '../cards/store/cards.selectors';
 import { getMovements, loadMoreMovements, selectCardId } from './store/movements.actions';
-import { selectCardsState, selectGetMovementsState, selectMovementsState, selectSelectedCardIdState, selectSelectedCardState, selectShouldLoadMoreState, selectTotalState } from './store/movements.selectors';
+import { selectGetMovementsState, selectMovementsState, selectSelectedCardIdState, selectSelectedCardState, selectShouldLoadMoreState, selectTotalState } from './store/movements.selectors';
 
 @Component({
   selector: 'ft-movements',
