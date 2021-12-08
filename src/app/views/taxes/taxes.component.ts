@@ -96,7 +96,14 @@ export class TaxesComponent implements OnInit {
       }));
       this.sub.add(this.form.valueChanges.subscribe(_ => {
         const formValid = this.form.valid ;
-        const contribuenteValid = this.form.get('contribuente').value.valid;
+        let contribuenteValid = false;
+        const contribuente = this.form.get('contribuente');
+        if(contribuente) {
+          if(contribuente.value) {
+            contribuenteValid = contribuente.value.valid;
+          }
+        }
+
         let ErarioValid = true;
         for(let i = 0; i < this.erario.value.length; i++) {
           if (this.erario.value[i]) {
@@ -178,9 +185,18 @@ export class TaxesComponent implements OnInit {
           inps: this.inps.value,
           card: result
         };
-        console.log(obj);
         this.taxesService.addTax(obj).subscribe({
-          next: _ => this.notificationService.show('Form Inviata con Successo'),
+          next: res => {
+            if(res) {
+              this.notificationService.show('La procedura è stata completata con Successo')
+              this.erario.clear();
+              this.inps.clear();
+              this.form.reset();
+            }
+            else {
+              this.notificationService.show('È avvenuto un errore', 'danger')
+            }
+          },
           error: err => console.error(err)
         });
       }

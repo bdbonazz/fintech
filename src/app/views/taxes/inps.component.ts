@@ -142,7 +142,12 @@ export class InpsComponent implements ControlValueAccessor, OnDestroy {
 
   writeValue(value: any) {
     if (!this.disabled) {
-      this.form.patchValue(value);
+      if(value) {
+        this.form.patchValue(value);
+      }
+      else {
+        this.form.reset();
+      }
       this.onChange(value);
       this.onTouched();
     }
