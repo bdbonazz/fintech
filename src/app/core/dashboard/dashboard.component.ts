@@ -66,7 +66,6 @@ export class DashboardComponent implements OnInit {
   }
 
   LogOut(): void{
-    console.log('logout');
     this.authService.logout();
   }
 }

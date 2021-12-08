@@ -49,7 +49,6 @@ export class ContactComponent implements OnDestroy {
 
   selectedContact$ = combineLatest([this.contacts$, this.state$]).pipe(
     map(([contacts, state]) => {
-      console.log(state)
       if(state.type === 'new') {
         return null;
       }
@@ -72,12 +71,10 @@ export class ContactComponent implements OnDestroy {
 
   selectContactHanlder(_id: string) {
     this.state$.next({ type: 'list', id: _id});
-    console.log('qui')
     this.selectedContact$.pipe(
       take(1)
       ).subscribe({
         next: res => {
-          console.log(res);
           this.dialogRef.close(res);
         },
         error: err => console.error(err)

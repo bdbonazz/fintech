@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
-import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/api/auth.service';
 import { NotificationService } from 'src/app/core/services/notification.service';
+import { Credentials } from 'src/app/models/user';
 
 @Component({
   selector: 'ft-login',
@@ -35,14 +35,13 @@ export class LoginComponent{
   signIn(form: any)
   {
     //TODO
-    console.log(form.value);
-    this.authService.login('form.' ,'').subscribe({
+    this.authService.login(form.email, form.password).subscribe({
       next: (res) => {
         if(res) {
             this.router.navigateByUrl('/dashboard');
         }
         else {
-          this.notificationService.show('User not Found', 'warning');
+          this.notificationService.show('User not Found', 'danger');
         }
       },
       error: err => console.error(err)
@@ -51,8 +50,13 @@ export class LoginComponent{
 
   register(form: any)
   {
-    console.log(form);
-    this.authService.register(form).subscribe({
+    const credential: Credentials = {
+      email: form.email,
+      name: form.name,
+      surname: form.surname,
+      password: form.password
+    }
+    this.authService.register(credential).subscribe({
       next: (res) => {
         if(res) {
             this.state = 'signin'

@@ -5,11 +5,15 @@ import { AmountValidatorDirective } from './amount.validator';
 import { IbanValidatorDirective } from './iban.validator';
 import { CodiceFiscaleValidatorDirective } from './codiceFiscale.validator';
 import { DatesCheckValidatorDirective } from './datesCheck.validator';
+import { ProvinciaValidatorDirective } from './provincia.validator';
+import { ComuneValidatorDirective } from './comune.validator';
 
 const array = [EqualFieldValidatorDirective,
   AmountValidatorDirective,
   IbanValidatorDirective,
   CodiceFiscaleValidatorDirective,
+  ProvinciaValidatorDirective,
+  ComuneValidatorDirective,
   DatesCheckValidatorDirective];
 
 @NgModule({

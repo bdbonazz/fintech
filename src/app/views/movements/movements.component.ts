@@ -66,7 +66,6 @@ export class MovementsComponent implements OnDestroy {
 
   constructor(private cardService: CardsService, private activatedRoute: ActivatedRoute)
   {
-    console.log(activatedRoute);
     cardService.getCards()
       .subscribe({
         next: res => this.cards$.next(res),
@@ -87,7 +86,7 @@ export class MovementsComponent implements OnDestroy {
       )
 
       this.sub.add(activatedRoute.params.subscribe({
-        next: res =>{ console.log(res); this.selectedCardId$.next(res.cardId);},
+        next: res => this.selectedCardId$.next(res.cardId),
         error: err => console.error(err)
       }));
   }

@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angu
 import { FormBuilder,Validators } from '@angular/forms';
 import { Contact } from 'src/app/models/contact';
 import { checkFieldReactive } from 'src/app/shared/utils/utils';
+import { ibanValidator } from 'src/app/shared/validators/iban.validator';
 
 @Component({
   selector: 'ft-contact-form',
@@ -29,6 +30,9 @@ import { checkFieldReactive } from 'src/app/shared/utils/utils';
       <mat-form-field appearance="fill" class="fullWidth">
         <mat-label>IBAN</mat-label>
         <input type="text" formControlName="iban" placeholder="IT00H0000000000000000000000" matInput >
+        <mat-error>
+        Iban non Corretto
+        </mat-error>
       </mat-form-field>
       <br>
       <br>
@@ -45,7 +49,7 @@ export class ContactFormComponent implements OnInit {
   form = this.fb.group({
     name: ['', Validators.required],
     surname: ['', Validators.required],
-    iban: ['']
+    iban: ['', ibanValidator]
   });
 
   @Input() contact: Contact | null = null;
@@ -65,7 +69,7 @@ export class ContactFormComponent implements OnInit {
   }
 
   cF(input: string){
-    return checkFieldReactive(this.form.get('contribuente').get(input));
+    return checkFieldReactive(this.form.get(input));
   }
 
   public cleanup(){

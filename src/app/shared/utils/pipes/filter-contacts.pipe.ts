@@ -1,5 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { Contact } from 'src/app/models/contact';
+import { IncludesIgnoreCase } from '../utils';
 
 @Pipe({
   name: 'filterContacts'
@@ -11,7 +12,7 @@ export class FilterContactsPipe implements PipeTransform {
       return items;
 
       return items.filter(item => {
-        return item.name.toLowerCase().includes(text.toLowerCase());
+        return IncludesIgnoreCase(item.name, text);
       });
   }
 }

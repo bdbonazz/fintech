@@ -5,7 +5,7 @@ import { checkField } from 'src/app/shared/utils/utils';
 @Component({
   selector: 'ft-sign-in',
   template: `
-  <form #f="ngForm" (submit)="submitHandler(f)" [ngFormOptions]="{updateOn: 'blur'}" >
+  <form #f="ngForm" (submit)="submitHandler(f)" >
     <mat-form-field appearance="fill" class="fullWidth">
       <mat-label>Email</mat-label>
       <mat-icon matPrefix>perm_identity</mat-icon>
@@ -41,12 +41,11 @@ export class SignInComponent {
   }
 
   submitHandler(form: NgForm): void {
-    //console.log(form.value);
     /*this.http.post<any>(environment.apiUrl, form.value)
       .subscribe(() => {
         form.reset();
       });*/
-    this.signin.emit(form);
+    this.signin.emit(form.value);
   }
 
   cF(input: NgModel){

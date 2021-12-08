@@ -29,9 +29,13 @@ export class AuthService {
   }
 
   logout(): void{
-    this.http.get(environment.apiUrl + '/logout')
-    this.userStore.removeUser();
-    this.router.navigateByUrl('/login');
+    this.http.get(environment.apiUrl + '/logout').subscribe({
+      next: res => {
+        this.userStore.removeUser();
+        this.router.navigateByUrl('/login');
+      },
+      error: err => console.error(err)
+    })
   }
 
   fetchUser(forceReload = false): Observable<User> {

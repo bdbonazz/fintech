@@ -7,7 +7,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { DialogOverviewComponent } from 'src/app/shared/utils/dialog-overview.component';
 import { AppointmentsService } from 'src/app/api/appointments.service';
 import { BehaviorSubject, combineLatest, Subscription } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { filter, map, switchMap, take } from 'rxjs/operators';
 
 @Component({
   selector: 'ft-appointment',
@@ -24,13 +24,13 @@ import { map, switchMap } from 'rxjs/operators';
         <ft-maps  [coords]="selectedLocation.coords" [zoom]="3"></ft-maps>
         <mat-form-field appearance="fill">
           <mat-label>Scegli una data</mat-label>
-          <input matInput [matDatepickerFilter]="myFilter" [matDatepicker]="picker" readonly="true"
+          <input matInput [ngModel]="selectedDate$ | async" [matDatepickerFilter]="myFilter" [matDatepicker]="picker" readonly="true"
           (dateInput)="dateChange('input', $event)" (dateChange)="dateChange('change', $event)" >
           <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-datepicker #picker></mat-datepicker>
         </mat-form-field>
         <mat-divider></mat-divider>
-        <mat-list *ngIf="selectedSlot">
+        <mat-list *ngIf="selectedSlot$ | async as selectedSlot">
           <div mat-subheader>Orari disponibili</div>
           <div *ngIf="!selectedSlot.slots.length" class="alert alert-warning">Nessun Orario Disponibile</div>
           <mat-list-item *ngFor="let slot of selectedSlot.slots" (click)="SlotClick(slot)" style="cursor: pointer">
@@ -73,7 +73,18 @@ export class AppointmentComponent implements OnDestroy{
     },
   ];*/
   daysWithSlots$ = new BehaviorSubject<DayWithSlots[]>([]);
-  selectedSlot: DayWithSlots | null;
+  selectedDate$ = new BehaviorSubject<Date | null>(null);
+
+  selectedSlot$ = combineLatest([this.daysWithSlots$, this.selectedDate$]).pipe(
+    map(([daysWithSlots, selectedDate]) => {
+
+      if(!selectedDate) {
+        return null;
+      }
+
+      return daysWithSlots.find(x => this.sameDateFromDate(x.day, selectedDate));
+    })
+  );
 
   /*
   //Utils se servisse specificare per che location mi sto prenotando
@@ -85,13 +96,16 @@ export class AppointmentComponent implements OnDestroy{
     slot: null
   };*/
 
-  constructor(public notificationService: NotificationService, public dialog: MatDialog, private appointmentService: AppointmentsService) {
+  constructor(public notificationService: NotificationService,
+    public dialog: MatDialog,
+    private appointmentService: AppointmentsService) {
     appointmentService.getLocations().subscribe({
       next: res => this.locations$.next(res),
       error: err => console.error(err)
     });
 
     this.sub.add(this.selectedLocation$.pipe(
+      filter(res => !!res),
       switchMap(res => this.appointmentService.getSlots(res._id))
     ).subscribe({
       next: res => {
@@ -145,46 +159,54 @@ export class AppointmentComponent implements OnDestroy{
 
   dateChange(type: string, event: MatDatepickerInputEvent<Date>) {
     console.log(type);
-    this.selectedSlot = this.daysWithSlots$.getValue().find(x => this.sameDateFromDate(x.day, event.value));
+    this.selectedDate$.next(event.value);
   }
 
   SlotClick(slot: slot)
   {
-    const dialogRef = this.dialog.open(DialogOverviewComponent, {
-      width: '250px',
-      data: {
-        Title: `Confermi l'appuntamento`,
-        Text: `L'appuntamento sarà fissato per il giorno ${this.americanToSmart(this.selectedSlot.day)} alle ${slot.toString()}`
-      },
-    });
+    this.selectedSlot$.pipe(
+      take(1)
+    ).subscribe({
+      next: res => {
+        const day = res.day;
+        const dialogRef = this.dialog.open(DialogOverviewComponent, {
+          width: '250px',
+          data: {
+            Title: `Confermi l'appuntamento`,
+            Text: `L'appuntamento sarà fissato per il giorno ${this.americanToSmart(day)} alle ${slot.toString()}`
+          },
+        });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if(result)
-      {
-        const newAppointment: DayWithSlot = {
-          day: this.selectedSlot.day,
-          slot: slot
-        }
-        this.appointmentService.addAppointment(newAppointment).subscribe(
-          res => {
-            if(res)
-            {
-              this.openSnackBar("Appuntamento Confermato")
-              this.drawerRef.toggle();
+        dialogRef.afterClosed().subscribe(result => {
+          if(result)
+          {
+            const newAppointment: DayWithSlot = {
+              day: day,
+              slot: slot
             }
-            else{
-              console.log(res);
-              this.openSnackBar("C'è stato un problema nel salvataggio dell'appuntamento'", 'danger');
-            }
-          },
-          err => {
-            console.error(err);
-            this.openSnackBar("C'è stato un problema nel salvataggio dell'appuntamento'", 'danger');
-          },
-          () => {}
-        )
-      }
-    });
+            this.appointmentService.addAppointment(newAppointment).subscribe(
+              res => {
+                if(res)
+                {
+                  this.openSnackBar("Appuntamento Confermato")
+                  this.drawerRef.toggle();
+                  this.selectedDate$.next(null);
+                }
+                else{
+                  this.openSnackBar("C'è stato un problema nel salvataggio dell'appuntamento'", 'danger');
+                }
+              },
+              err => {
+                console.error(err);
+                this.openSnackBar("C'è stato un problema nel salvataggio dell'appuntamento'", 'danger');
+              },
+              () => {}
+            )
+          }
+        });
+      },
+      error: err => console.error(err)
+    })
   }
 
   openSnackBar(message: string, style: avaibleStyle = 'success') {

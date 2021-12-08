@@ -5,13 +5,17 @@ import { TaxesRoutingModule } from './taxes-routing.module';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MaterialSharedModule } from 'src/app/shared/material/material.module';
 import { ErarioComponent } from './erario.component';
+import { InpsComponent } from './inps.component';
+import { ContribuenteComponent } from './contribuente.component';
 
 
 
 @NgModule({
   declarations: [
     TaxesComponent,
-    ErarioComponent
+    ContribuenteComponent,
+    ErarioComponent,
+    InpsComponent,
   ],
   imports: [
     CommonModule,

@@ -4,10 +4,11 @@ import { ToString } from '../utils/utils';
 
 export function ibanValidator(control: AbstractControl): ValidationErrors | null {
   const iban = ToString(control.value);
-  const re = new RegExp('[A-Z]{2}[0-9]{2}[A-Z]{1}[0-9]{22}');
-  return re.test(iban) ? null : {
-    iban: `IBAN is not correct`,
-  };
+  return !iban
+    ? null
+    : new RegExp('[A-Z]{2}[0-9]{2}[A-Z]{1}[0-9]{22}').test(iban)
+    ? null
+    : { iban: `IBAN is not correct` };
  }
 
 @Directive({

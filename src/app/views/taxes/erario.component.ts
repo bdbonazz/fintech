@@ -4,14 +4,16 @@ import {
   HostBinding,
   Output,
   EventEmitter,
+  OnDestroy,
 } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { Erario } from 'src/app/models/tax';
 
 @Component({
   selector: 'ft-erario',
   template: `
-  <ng-container [formControl]="form">
+  <ng-container [formGroup]="form">
     <div class="row">
       <div class="col-3">
         <mat-form-field appearance="fill" class="fullWidth">
@@ -56,13 +58,11 @@ import { Erario } from 'src/app/models/tax';
     },
   ],
 })
-export class ErarioComponent implements ControlValueAccessor {
+export class ErarioComponent implements ControlValueAccessor, OnDestroy {
 
   @Input() disabled = false;
   @Input() index: number = 0;
   @Output() remove = new EventEmitter<number>();
-
-  constructor(private fb: FormBuilder) { }
 
   form = this.fb.group({
     codiceTributo: this.fb.control('', Validators.required),
@@ -71,12 +71,26 @@ export class ErarioComponent implements ControlValueAccessor {
     credito: this.fb.control('', Validators.required)
   });
 
+  sub = new Subscription();
+  constructor(private fb: FormBuilder) {
+    this.sub.add(this.form.valueChanges.subscribe(res => { this.onChange(Object.assign({}, {valid: this.form.valid}, res)); } ))
+  };
+
+  ngOnDestroy() { this.sub.unsubscribe() };
+
+
+
+
   @HostBinding('style.opacity')
   get opacity() {
     return this.disabled ? 0.2 : 1;
   }
 
-  rate(value: Erario): void {
+  // Control Value Accessor
+  onChange = (_: any) => {};
+  onTouched = () => {};
+
+  writeValue(value: any) {
     if (!this.disabled) {
       this.form.patchValue(value);
       this.onChange(value);
@@ -84,17 +98,10 @@ export class ErarioComponent implements ControlValueAccessor {
     }
   }
 
-  // Control Value Accessor
-  onChange = (value: Erario) => {};
-  onTouched = () => {};
-
-  writeValue(value: Erario) {
-    this.rate(value);
-  }
-
-  registerOnChange(fn: (rating: Erario) => void): void {
+  registerOnChange(fn: (_: any) => void) {
     this.onChange = fn;
   }
+
 
   registerOnTouched(fn: () => void): void {
     this.onTouched = fn;

@@ -6,7 +6,7 @@ import { checkField } from 'src/app/shared/utils/utils';
 @Component({
   selector: 'ft-register',
   template: `
-    <form #f="ngForm" (submit)="submitHandler(f)" [ngFormOptions]="{updateOn: 'blur'}"
+    <form #f="ngForm" (submit)="submitHandler(f)"
     ftEqualFieldValidator [Field1]="'password'" [Field2]="'password2'">
       <mat-form-field appearance="fill" class="fullWidth">
         <mat-label>Email</mat-label>
@@ -64,7 +64,7 @@ import { checkField } from 'src/app/shared/utils/utils';
       </span>
       <br>
       <button mat-raised-button color="primary" type="submit" class="btn btn-primary" style="width:100%" [disabled]="!f.valid">
-        Accedi
+        Registra
       </button>
     </form>
     <!--<br>
@@ -86,12 +86,11 @@ z
   submitHandler(form: NgForm): void {
     if(!form.valid)
       return;
-    //console.log(form.value);
     /*this.http.post<any>(environment.apiUrl, form.value)
       .subscribe(() => {
         form.reset();
       });*/
-      this.register.emit(form);
+      this.register.emit(form.form.value);
   }
 
   cF(input: NgModel){

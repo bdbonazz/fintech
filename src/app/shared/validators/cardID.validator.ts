@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AbstractControl, AsyncValidatorFn } from '@angular/forms';
-import { ToNumber, ToString } from '../utils/utils';
+import { ToString } from '../utils/utils';
 import { CardsService } from 'src/app/api/cards.service';
 import { of } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -10,14 +10,20 @@ export class CardIDValidator {
 
   constructor(private cardService: CardsService) {}
 
-  validate(cardID_FieldName: string): AsyncValidatorFn {
+  validate(cardID_FieldName: string = '', parent: boolean = false): AsyncValidatorFn {
     return (control: AbstractControl) => {
-      const cardID_Field = control.get(cardID_FieldName);
-      if(!cardID_Field) {
-        return of({ cardID: `Missing Field` });
+      let cardID = '';
+      if(parent)
+      {
+        const cardID_Field = control.get(cardID_FieldName);
+        if(!cardID_Field) {
+          return of({ cardID: `Missing Field` });
+        }
+        cardID = ToString(cardID_Field.value);
       }
-
-      const cardID = ToString(cardID_Field.value);
+      else {
+        cardID = ToString(control.value);
+      }
 
       return !cardID
       ? of(null)

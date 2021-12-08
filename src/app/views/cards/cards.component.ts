@@ -69,12 +69,10 @@ export class CardsComponent implements OnInit {
 
   cardDetail(cardID: string)
   {
-    console.log(cardID);
     this.router.navigate(['dashboard','movements',cardID])
   }
 
   saveCard(newCard: CardForm){
-    console.log(newCard);
     this.cardService.addCard(newCard).pipe(
       withLatestFrom(this.cards$)
     ).subscribe(

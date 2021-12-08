@@ -75,8 +75,8 @@ export class CardFormComponent implements OnInit {
     type: ['', Validators.required],
     name: ['', Validators.required],
     surname: ['', Validators.required],
-    number: ['', Validators.required, Validators.pattern("[0-9]{16}")],
-    csc: ['', Validators.required, Validators.pattern("[0-9]{3}")]
+    number: ['', [Validators.required, Validators.pattern("[0-9]{16}")]],
+    csc: ['', [Validators.required, Validators.pattern("[0-9]{3}")]]
   });
 
   cT: any
@@ -93,7 +93,7 @@ export class CardFormComponent implements OnInit {
   }
 
   cF(input: string){
-    return checkFieldReactive(this.form.get('contribuente').get(input));
+    return checkFieldReactive(this.form.get(input));
   }
 
   public cleanup(){

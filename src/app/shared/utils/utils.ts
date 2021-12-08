@@ -5,7 +5,7 @@ export function checkField(input: NgModel) {
   return { 'is-invalid': input.invalid, 'is-valid': input.valid }
 }
 export function checkFieldReactive(input: AbstractControl) {
-  return { 'is-invalid': input.invalid, 'is-valid': input.valid }
+  return { 'is-invalid': input.invalid && (input.touched || !input.pristine), 'is-valid': input.valid }
 }
 
 //String
@@ -17,6 +17,11 @@ export function GetKey(input: any) : string {
 }
 export function EqualsIgnoreCase(input: any, input2: any) : boolean {
   return GetKey(input) === GetKey(input2);
+}
+export function IncludesIgnoreCase(container: any, content: any) : boolean {
+  return content
+    ? GetKey(container).includes(GetKey(content))
+    : true;
 }
 
 //Number
@@ -38,4 +43,9 @@ export function dateToString(d: Date) : string {
     day = '0' + day;
   }
   return [day, month, year].join('/');
+}
+
+//Array
+export function removeDuplicates(value: any, index: number, self: any[]) {
+  return self.indexOf(value) === index;
 }
