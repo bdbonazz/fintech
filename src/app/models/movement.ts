@@ -13,3 +13,11 @@ export interface CardMovements
   data: Movement[];
   total: number
 }
+
+export interface MovementsSelectorUtility
+{
+  cardId: string,
+  movements: Movement[],
+  showChunkLenght: number,
+  loadingMovements: boolean
+}

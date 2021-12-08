@@ -1,10 +1,11 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
-import { filter, map, switchMap } from 'rxjs/operators';
-import { CardsService } from 'src/app/api/cards.service';
-import { Card } from 'src/app/models/card';
-import { Movement } from 'src/app/models/movement';
+import { Store } from '@ngrx/store';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
+import { loadCards } from '../cards/store/cards.actions';
+import { getMovements, loadMoreMovements, selectCardId } from './store/movements.actions';
+import { selectCardsState, selectGetMovementsState, selectMovementsState, selectSelectedCardIdState, selectSelectedCardState, selectShouldLoadMoreState, selectTotalState } from './store/movements.selectors';
 
 @Component({
   selector: 'ft-movements',
@@ -40,74 +41,43 @@ import { Movement } from 'src/app/models/movement';
   styles: [
   ]
 })
-export class MovementsComponent implements OnDestroy {
+export class MovementsComponent implements OnInit, OnDestroy {
 
   sub = new Subscription();
 
   movementsToShowChunkLenght = 5;
 
-  cards$ = new BehaviorSubject<Card[]>([]);
-  selectedCardId$ = new BehaviorSubject<string>('');
+  cards$ = this.store.select(selectCardsState);
+  selectedCardId$ = this.store.select(selectSelectedCardIdState);
+  selectedCard$ = this.store.select(selectSelectedCardState);
 
-  selectedCard$ = combineLatest([this.cards$, this.selectedCardId$]).pipe(
-    map(([cards, cardID]) => {
-      return cards.find(x => x._id === cardID)
-    })
-  );
+  movements$ = this.store.select(selectMovementsState);
+  total$ = this.store.select(selectTotalState);
+  shouldLoadMore$ = this.store.select(selectShouldLoadMoreState);
 
-  movements$ = new BehaviorSubject<Movement[]>([]);
-  total$ = new BehaviorSubject<number>(0);
+  constructor(
+    private activatedRoute: ActivatedRoute,
+    private store: Store
+    ) { }
 
-  shouldLoadMore$ = combineLatest([this.movements$, this.total$]).pipe(
-    map(([movements, total]) => {
-      return total > movements.length;
-    })
-  );
-
-  constructor(private cardService: CardsService, private activatedRoute: ActivatedRoute)
-  {
-    cardService.getCards()
-      .subscribe({
-        next: res => this.cards$.next(res),
+  ngOnInit(): void {
+    this.sub.add(
+      this.activatedRoute.params.subscribe({
+        next: res => this.store.dispatch(selectCardId({id: res.cardId})),
         error: err => console.error(err)
-      });
-
-      this.sub.add(
-        this.selectedCard$.pipe(
-          filter(res => !!res),
-          switchMap(res => cardService.getMovements(res._id, this.movementsToShowChunkLenght, 0))
-        )
-        .subscribe({
-          next: res => {
-            this.movements$.next(res.data);
-            this.total$.next(res.total);
-          }
-        })
-      )
-
-      this.sub.add(activatedRoute.params.subscribe({
-        next: res => this.selectedCardId$.next(res.cardId),
-        error: err => console.error(err)
-      }));
+      })
+    );
+    this.sub.add(
+      this.store.select(selectGetMovementsState).subscribe(
+        res => this.store.dispatch(getMovements(res)
+        ))
+    );
+    this.store.dispatch(loadCards())
   }
 
-  changeCard(cardID: string){
-    this.selectedCardId$.next(cardID);
-  }
+  changeCard(cardId: string) { this.store.dispatch(selectCardId({id: cardId})); }
 
-  LoadMoreMovements(){
-    const actualMovements = this.movements$.getValue();
-    this.cardService.getMovements(this.selectedCardId$.getValue(), this.movementsToShowChunkLenght, actualMovements.length)
-      .subscribe({
-        next: res => {
-          this.movements$.next([...actualMovements, ...res.data]);
-          this.total$.next(res.total);
-        },
-        error: err => console.error(err)
-      });
-  }
+  LoadMoreMovements() { this.store.dispatch(loadMoreMovements()); }
 
-  ngOnDestroy(): void {
-    this.sub.unsubscribe();
-  }
+  ngOnDestroy(): void { this.sub.unsubscribe(); }
 }

@@ -16,6 +16,8 @@ import { StoreModule } from '@ngrx/store';
 import { routerReducer, StoreRouterConnectingModule } from '@ngrx/router-store';
 import { EffectsModule } from '@ngrx/effects';
 import { RouterEffects } from './store/router.effects';
+import { CardReducer } from './views/cards/store/cards.reducer';
+import { CardsEffects } from './views/cards/store/cards.effects';
 
 @NgModule({
   declarations: [
@@ -38,9 +40,10 @@ import { RouterEffects } from './store/router.effects';
       headerName: 'X-XSRF-TOKEN',
     }),
     StoreModule.forRoot({
-      router: routerReducer
+      router: routerReducer,
+      cards: CardReducer,
     }),
-    EffectsModule.forRoot([RouterEffects]),
+    EffectsModule.forRoot([RouterEffects, CardsEffects]),
     StoreRouterConnectingModule.forRoot(),
   ],
   providers: [],

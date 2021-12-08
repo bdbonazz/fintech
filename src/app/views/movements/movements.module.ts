@@ -8,6 +8,10 @@ import { MaterialSharedModule } from 'src/app/shared/material/material.module';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { UtilsModule } from 'src/app/shared/utils/utils.module';
+import { MovementReducer } from './store/movements.reducer';
+import { StoreModule } from '@ngrx/store';
+import { EffectsModule } from '@ngrx/effects';
+import { MovementsEffects } from './store/movements.effects';
 
 
 @NgModule({
@@ -18,7 +22,11 @@ import { UtilsModule } from 'src/app/shared/utils/utils.module';
     MaterialSharedModule,
     HttpClientModule,
     FormsModule,
-    UtilsModule
+    UtilsModule,
+    StoreModule.forFeature('movements', {
+      movements: MovementReducer,
+    }),
+    EffectsModule.forFeature([MovementsEffects])
   ]
 })
 export class MovementsModule { }
