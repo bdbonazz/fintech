@@ -9,6 +9,10 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CardListComponent } from './card-list.component';
 import { CardSelectComponent } from './card-select.component';
 import { UtilsModule } from 'src/app/shared/utils/utils.module';
+import { StoreModule } from '@ngrx/store';
+import { CardReducer } from './store/cards.reducer';
+import { CardsEffects } from './store/cards.effects';
+import { EffectsModule } from '@ngrx/effects';
 
 
 @NgModule({
@@ -19,7 +23,11 @@ import { UtilsModule } from 'src/app/shared/utils/utils.module';
     FormsModule,
     ReactiveFormsModule,
     MaterialSharedModule,
-    UtilsModule
+    UtilsModule,
+    StoreModule.forFeature('cards', {
+      cards: CardReducer,
+    }),
+    EffectsModule.forFeature([CardsEffects])
   ],
   exports: [CardSelectComponent]
 })

@@ -1,31 +1,31 @@
-import { HttpClient } from '@angular/common/http';
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { MatDrawer } from '@angular/material/sidenav';
-import { Router } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
-import { withLatestFrom } from 'rxjs/operators';
-import { CardsService } from 'src/app/api/cards.service';
-import { avaibleStyle, NotificationService } from 'src/app/core/services/notification.service';
-import { Card, CardForm } from 'src/app/models/card';
-import { CardFormComponent } from './card-form.component';
+import { Component, OnInit } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { CardForm } from 'src/app/models/card';
+import { addCard, deleteCard, goToCardDetail, loadCards, setDrawer } from './store/cards.actions';
+import { selectCardsState, selectClearCountState, selectLoadingState, selectOpenedDrawerState } from './store/cards.selectors';
 
 @Component({
   selector: 'ft-cards',
   template: `
   <mat-drawer-container style="height: 100%; padding: 20px">
-  <ft-card-list
-  [cards]="cards$ | async"
-  (NewCard)="drawer.toggle()"
-  (Delete)="deleteCard($event)"
-  (Details)="cardDetail($event)"
-  ></ft-card-list>
-  <mat-drawer #drawer mode="side" position="end" style="padding: 20px; height:100%">
-    <ft-card-form #cardForm
-    (savedCard)="saveCard($event)"
-    (close)="closeCardForm()"
-    ></ft-card-form>
-  </mat-drawer>
-</mat-drawer-container>
+    <mat-spinner *ngIf="loading$ | async; else elseBlock"></mat-spinner>
+    <ng-template #elseBlock>
+      <ft-card-list
+      [cards]="cards$ | async"
+      (NewCard)="insertNewCard()"
+      (Delete)="deleteCard($event)"
+      (Details)="cardDetail($event)"
+      ></ft-card-list>
+    </ng-template>
+    <mat-drawer #drawer mode="side" position="end" style="padding: 20px; height:100%" [opened]="openedDrawer$ | async">
+      <ft-card-form
+      [clearCount]="clearCount$ | async"
+      [loading]="loading$ | async"
+      (savedCard)="saveCard($event)"
+      (close)="closeCardForm()"
+      ></ft-card-form>
+    </mat-drawer>
+  </mat-drawer-container>
 
   `,
   styles: [`
@@ -33,77 +33,24 @@ import { CardFormComponent } from './card-form.component';
 })
 export class CardsComponent implements OnInit {
 
-  @ViewChild('drawer', { read: MatDrawer }) drawerRef!: MatDrawer;
-  @ViewChild('cardForm', { read: CardFormComponent }) cardFormRef!: CardFormComponent;
+  clearCount$ = this.store.select(selectClearCountState);
+  openedDrawer$ = this.store.select(selectOpenedDrawerState);
+  loading$ = this.store.select(selectLoadingState);
+  cards$ = this.store.select(selectCardsState);
 
-  cards$ = new BehaviorSubject<Card[]>([]);
+  constructor(
+    private store: Store
+    ) { }
 
-  constructor(public notificationService: NotificationService, private cardService: CardsService, private router: Router)
-  {
-    cardService.getCards().subscribe({
-      next: res => this.cards$.next(res),
-      error : err => console.error(err)
-    });
-  }
+  ngOnInit(): void { this.store.dispatch(loadCards()) }
 
-  ngOnInit(): void {
-  }
+  insertNewCard() { this.store.dispatch(setDrawer({ value: true }))}
 
-  deleteCard(cardID: string)
-  {
-    this.cardService.deleteCard(cardID).pipe(
-      withLatestFrom(this.cards$)
-    ).subscribe({
-      next: ([success, cards]) => {
-        if(success) {
-          this.cards$.next(cards.filter(x => x._id !== cardID));
-          this.openSnackBar('Carta Rimossa con Successo')
-        }
-        else {
-          this.openSnackBar("C'è stato un problema nella rimozione della carta'", 'danger')
-        }
-      },
-      error: err => console.error(err)
-    });
-  }
+  deleteCard(cardId: string) { this.store.dispatch(deleteCard({ id: cardId})); }
 
-  cardDetail(cardID: string)
-  {
-    this.router.navigate(['dashboard','movements',cardID])
-  }
+  cardDetail(cardId: string) { this.store.dispatch(goToCardDetail({ cardId: cardId})); }
 
-  saveCard(newCard: CardForm){
-    this.cardService.addCard(newCard).pipe(
-      withLatestFrom(this.cards$)
-    ).subscribe(
-      {
-        next: ([addedCard, cards]) => {
-          this.cards$.next([...cards, addedCard]);
-          this.pulisciForm();
-          this.openSnackBar('Carta Aggiunta con Successo');
-        },
-        error: err => {
-          console.error(err);
-          this.openSnackBar("C'è stato un problema nel salvataggio della carta", 'danger');
-        }
-      }
-    );
-  }
+  saveCard(newCard: CardForm) { this.store.dispatch(addCard({ card: newCard})); }
 
-  closeCardForm(){
-    this.pulisciForm();
-  }
-
-  pulisciForm(){
-    this.cardFormRef.cleanup();
-    this.drawerRef.toggle();
-  }
-
-  openSnackBar(message: string, style: avaibleStyle = 'success') {
-    this.notificationService.show(message, style)
-  }
-
-  //openSnackBar(message: string, action: string) {
-  //  this.snackBar.open(message, action);
-  //}
+  closeCardForm() { this.store.dispatch(setDrawer({ value: false }))}
 }

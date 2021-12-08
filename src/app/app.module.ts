@@ -12,6 +12,10 @@ import { HomeModule } from './views/home/home.module';
 import { TaxesModule } from './views/taxes/taxes.module';
 import { HttpClientXsrfModule } from '@angular/common/http';
 import { InterceptorModule } from './core/interceptors/interceptor.module';
+import { StoreModule } from '@ngrx/store';
+import { routerReducer, StoreRouterConnectingModule } from '@ngrx/router-store';
+import { EffectsModule } from '@ngrx/effects';
+import { RouterEffects } from './store/router.effects';
 
 @NgModule({
   declarations: [
@@ -32,7 +36,12 @@ import { InterceptorModule } from './core/interceptors/interceptor.module';
     HttpClientXsrfModule.withOptions({
       cookieName: 'XSRF-TOKEN',
       headerName: 'X-XSRF-TOKEN',
-    })
+    }),
+    StoreModule.forRoot({
+      router: routerReducer
+    }),
+    EffectsModule.forRoot([RouterEffects]),
+    StoreRouterConnectingModule.forRoot(),
   ],
   providers: [],
   bootstrap: [AppComponent]

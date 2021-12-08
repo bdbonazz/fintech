@@ -1,7 +1,7 @@
-import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
-import { FormBuilder, NgModel, Validators } from '@angular/forms';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { FormBuilder, Validators } from '@angular/forms';
 import { CardForm, cardTypes } from 'src/app/models/card';
-import { checkField, checkFieldReactive } from 'src/app/shared/utils/utils';
+import { checkFieldReactive } from 'src/app/shared/utils/utils';
 
 @Component({
   selector: 'ft-card-form',
@@ -51,7 +51,16 @@ import { checkField, checkFieldReactive } from 'src/app/shared/utils/utils';
     </mat-form-field>
     <br>
     <br>
-    <button mat-raised-button color="primary" type="submit" class="btn btn-primary" style="width:100%" [disabled]="!form.valid">
+    <mat-spinner *ngIf="loading" [diameter]="30"></mat-spinner>
+    <button
+    *ngIf="!loading"
+    mat-raised-button
+    [disabled]="!form.valid"
+    color="primary"
+    type="submit"
+    class="btn btn-primary"
+    style="width:100%"
+    >
       Aggiungi carta
     </button>
     <br>
@@ -59,7 +68,14 @@ import { checkField, checkFieldReactive } from 'src/app/shared/utils/utils';
     <!--<button mat-raised-button color="warn" [routerLink]="'/cards'" class="btn btn-warn" style="width:100%">
       Annulla
     </button>-->
-    <button mat-raised-button color="warn" type="button" (click)="close.emit()" class="btn btn-warn" style="width:100%">
+    <button
+    mat-raised-button
+    (click)="close.emit()"
+    color="warn"
+    type="button"
+    class="btn btn-warn"
+    style="width:100%"
+    >
       Annulla
     </button>
   </form>
@@ -67,7 +83,9 @@ import { checkField, checkFieldReactive } from 'src/app/shared/utils/utils';
   styles: [
   ]
 })
-export class CardFormComponent implements OnInit {
+export class CardFormComponent implements OnChanges {
+  @Input() clearCount: number = 0
+  @Input() loading: boolean = false
   @Output() savedCard = new EventEmitter<CardForm>();
   @Output() close = new EventEmitter();
 
@@ -79,24 +97,12 @@ export class CardFormComponent implements OnInit {
     csc: ['', [Validators.required, Validators.pattern("[0-9]{3}")]]
   });
 
+  ngOnChanges(changes: SimpleChanges) { if (changes.clearCount) { this.form.reset(); } }
+
   cT: any
-  constructor(private fb: FormBuilder)
-  {
-    this.cT = cardTypes;
-  }
+  constructor(private fb: FormBuilder) { this.cT = cardTypes; }
 
-  ngOnInit(): void {
-  }
+  submitHandler(): void { this.savedCard.emit(this.form.value); }
 
-  submitHandler(): void {
-    this.savedCard.emit(this.form.value);
-  }
-
-  cF(input: string){
-    return checkFieldReactive(this.form.get(input));
-  }
-
-  public cleanup(){
-    this.form.reset();
-  }
+  cF(input: string){ return checkFieldReactive(this.form.get(input)); }
 }
