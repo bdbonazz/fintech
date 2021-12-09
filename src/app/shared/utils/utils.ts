@@ -45,6 +45,42 @@ export function dateToString(d: Date) : string {
   return [day, month, year].join('/');
 }
 
+//Dato che la data è scritta secondo lo stile americano, confronto singolarmente giorno, mese e anno
+export function sameDateFromDate(slotDate: string, date: Date) : boolean {
+  if (!date) {
+    return false;
+  }
+
+  const valori: string[] = date.toLocaleDateString().split('/');
+  const dayToday: number = +valori[0]
+  const monthToday: number = +valori[1]
+  const yearToday: number = +valori[2]
+  return sameDateFromDMY(slotDate, dayToday, monthToday, yearToday);
+}
+
+//Dato che la data è scritta secondo lo stile americano, confronto singolarmente giorno, mese e anno
+export function sameDateFromDMY(slotDate: string, day: number, month: number, year: number) : boolean {
+  if (!slotDate) {
+    return false;
+  }
+  const valori: string[] = slotDate.split('/');
+  if (valori.length < 3){
+    return false;
+  }
+
+  return day === +valori[1] && month === +valori[0] && year === +valori[2];
+}
+
+//Dato che la data è scritta secondo lo stile americano, la riporto nel formato europeo
+export function americanToSmart(date: string) : string {
+  const valori: string[] = date.split('/');
+  return [
+    String(valori[1]).padStart(2, '0'),
+    String(valori[0]).padStart(2, '0'),
+    String(valori[2]).padStart(4, '0')
+  ].join("/");
+}
+
 //Array
 export function removeDuplicates(value: any, index: number, self: any[]) {
   return self.indexOf(value) === index;

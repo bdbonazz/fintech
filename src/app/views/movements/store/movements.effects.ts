@@ -24,7 +24,6 @@ ma quella libreria richiede angular 12, aggiornare questo progetto ad angular 12
   getMovements$ = createEffect(() => this.actions.pipe(
     ofType(getMovements),
     concatLatestFrom(() => this.store.select(selectGetMovementsState)),
-    tap(console.log),
     switchMap(selectGetMovement => {
       return this.cardService.getMovements(
         selectGetMovement.cardId,

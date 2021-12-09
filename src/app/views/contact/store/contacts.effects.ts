@@ -18,7 +18,6 @@ export class ContactsEffects {
   loadContacts$ = createEffect(() => this.actions.pipe(
     ofType(loadContacts),
     switchMap(() => this.contactsService.getContacts().pipe(
-      tap(console.log),
       map(contacts => loadContactsSuccess({ contacts })),
       catchError(() => of(loadContactsFail()))
     ))
@@ -34,7 +33,6 @@ export class ContactsEffects {
 
   addContacts$ = createEffect(() => this.actions.pipe(
     ofType(addContact),
-    tap(console.log),
     mergeMap(({ contact }) => this.contactsService.addContact(contact).pipe(
       map(res => {
         console.log(res);
@@ -51,7 +49,6 @@ export class ContactsEffects {
       catchError(() => of(editContactFail))
     ))
   ))
-
 
   contactsFail$ = createEffect(() => this.actions.pipe(
     ofType(deleteContactFail, addContactFail, editContactFail),

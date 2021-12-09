@@ -1,13 +1,12 @@
-import { Component, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
-import { MatDrawer } from '@angular/material/sidenav';
-import { avaibleStyle, NotificationService } from 'src/app/core/services/notification.service';
-import { DayWithSlot, DayWithSlots, Location, slot } from 'src/app/models/location';
-import { MatDialog } from '@angular/material/dialog';
-import { DialogOverviewComponent } from 'src/app/shared/utils/dialog-overview.component';
-import { AppointmentsService } from 'src/app/api/appointments.service';
-import { BehaviorSubject, combineLatest, Subscription } from 'rxjs';
-import { filter, map, switchMap, take } from 'rxjs/operators';
+import { filter, take } from 'rxjs/operators';
+import { Store } from '@ngrx/store';
+import { selectAppointmentState, selectDaysWithSlotsState, selectLoadingState, selectLocationsState, selectOpenedDrawerState, selectSelectedDateState, selectSelectedLocationIdState, selectSelectedLocationState, selectSelectedSlotState } from './store/appointments.selectors';
+import { sameDateFromDMY } from 'src/app/shared/utils/utils';
+import { askAppointment, loadLocations, setClickedSlot, setLocationID, setSelectedDate } from './store/appointments.actions';
+import { Subscription } from 'rxjs';
+import { slot } from 'src/app/models/location';
 
 @Component({
   selector: 'ft-appointment',
@@ -20,7 +19,13 @@ import { filter, map, switchMap, take } from 'rxjs/operators';
           <div mat-line>{{location.name}}<br>{{location.address}}</div>
         </mat-list-item>
       </mat-list>
-      <mat-drawer #drawer mode="side" position="end" style="padding: 20px" *ngIf="selectedLocation$ | async as selectedLocation">
+      <mat-drawer
+      mode="side"
+      position="end"
+      style="padding: 20px"
+      *ngIf="selectedLocation$ | async as selectedLocation"
+      [opened]="openedDrawer$ | async"
+      >
         <ft-maps  [coords]="selectedLocation.coords" [zoom]="3"></ft-maps>
         <mat-form-field appearance="fill">
           <mat-label>Scegli una data</mat-label>
@@ -45,21 +50,14 @@ import { filter, map, switchMap, take } from 'rxjs/operators';
   styles: [
   ]
 })
-export class AppointmentComponent implements OnDestroy{
-  sub = new Subscription();
+export class AppointmentComponent implements OnInit, OnDestroy {
 
-  @ViewChild('drawer', { read: MatDrawer }) drawerRef!: MatDrawer;
+  loading$ = this.store.select(selectLoadingState);
+  openedDrawer$ = this.store.select(selectOpenedDrawerState);
 
-  locations$ = new BehaviorSubject<Location[]>([]);
-  selectedLocationId$ = new BehaviorSubject<string>('');
-
-  selectedLocation$ = combineLatest([this.locations$, this.selectedLocationId$]).pipe(
-    map(([locations, selectedLocationId]) => {
-      const index = locations.findIndex(x => x._id === selectedLocationId);
-      return index >= 0 ? locations[index] : null;
-    })
-  );
-
+  locations$ = this.store.select(selectLocationsState);
+  selectedLocationId$ = this.store.select(selectSelectedLocationIdState);
+  selectedLocation$ = this.store.select(selectSelectedLocationState);
   /*
   //Test Funzionamento Chiusura per Giorni della Settimana
   closedDays: closedDays[] | null = [
@@ -72,20 +70,9 @@ export class AppointmentComponent implements OnDestroy{
       closedDays: [1, 2, 3]
     },
   ];*/
-  daysWithSlots$ = new BehaviorSubject<DayWithSlots[]>([]);
-  selectedDate$ = new BehaviorSubject<Date | null>(null);
-
-  selectedSlot$ = combineLatest([this.daysWithSlots$, this.selectedDate$]).pipe(
-    map(([daysWithSlots, selectedDate]) => {
-
-      if(!selectedDate) {
-        return null;
-      }
-
-      return daysWithSlots.find(x => this.sameDateFromDate(x.day, selectedDate));
-    })
-  );
-
+  daysWithSlots$ = this.store.select(selectDaysWithSlotsState);
+  selectedDate$ = this.store.select(selectSelectedDateState);
+  selectedSlot$ = this.store.select(selectSelectedSlotState);
   /*
   //Utils se servisse specificare per che location mi sto prenotando
   appointment: {
@@ -96,36 +83,22 @@ export class AppointmentComponent implements OnDestroy{
     slot: null
   };*/
 
-  constructor(public notificationService: NotificationService,
-    public dialog: MatDialog,
-    private appointmentService: AppointmentsService) {
-    appointmentService.getLocations().subscribe({
-      next: res => this.locations$.next(res),
-      error: err => console.error(err)
-    });
+  appointment$ = this.store.select(selectAppointmentState);
 
-    this.sub.add(this.selectedLocation$.pipe(
-      filter(res => !!res),
-      switchMap(res => this.appointmentService.getSlots(res._id))
-    ).subscribe({
-      next: res => {
-        if(!this.drawerRef.opened){
-          this.drawerRef.toggle();
-        }
+  sub = new Subscription();
+  constructor(private store: Store) { }
 
-        this.daysWithSlots$.next(res);
-      },
-      error: err => console.error(err)
-    }))
-   }
+  ngOnInit(): void {
 
-  ngOnDestroy(): void {
-    this.sub.unsubscribe();
+    this.sub.add(this.appointment$.pipe(
+    ).subscribe(dayWithSlot => this.store.dispatch(askAppointment({dayWithSlot}))));
+
+    this.store.dispatch(loadLocations());
   }
 
-  LocationClick(locationID: string): void {
-    this.selectedLocationId$.next(locationID);
-  }
+ngOnDestroy(): void { this.sub.unsubscribe()}
+
+  LocationClick(locationID: string): void { this.store.dispatch(setLocationID({ id: locationID})) }
 
   myFilter = (d: Date | null): boolean => {
     const date = d || new Date();
@@ -150,103 +123,21 @@ export class AppointmentComponent implements OnDestroy{
     const monthToday: number = +valori[1]
     const yearToday: number = +valori[2]
 
-    const daysWithSlots = this.daysWithSlots$.getValue();
-    if(daysWithSlots.length)
-      DayOk = daysWithSlots.findIndex(x => this.sameDateFromDMY(x.day, dayToday, monthToday, yearToday)) >= 0;
+    this.daysWithSlots$.pipe(
+      filter(x => x.length > 0),
+      take(1)
+      ).subscribe(res => {
+        DayOk = res.findIndex(x => sameDateFromDMY(x.day, dayToday, monthToday, yearToday)) >= 0;
+      });
 
     return futureDays && DayOk;
   };
 
   dateChange(type: string, event: MatDatepickerInputEvent<Date>) {
+    //Mantengo un log nel caso in cui in futuro sia necessario modificare la business logic
     console.log(type);
-    this.selectedDate$.next(event.value);
+    this.store.dispatch(setSelectedDate({date: event.value}));
   }
 
-  SlotClick(slot: slot)
-  {
-    this.selectedSlot$.pipe(
-      take(1)
-    ).subscribe({
-      next: res => {
-        const day = res.day;
-        const dialogRef = this.dialog.open(DialogOverviewComponent, {
-          width: '250px',
-          data: {
-            Title: `Confermi l'appuntamento`,
-            Text: `L'appuntamento sarà fissato per il giorno ${this.americanToSmart(day)} alle ${slot.toString()}`
-          },
-        });
-
-        dialogRef.afterClosed().subscribe(result => {
-          if(result)
-          {
-            const newAppointment: DayWithSlot = {
-              day: day,
-              slot: slot
-            }
-            this.appointmentService.addAppointment(newAppointment).subscribe(
-              res => {
-                if(res)
-                {
-                  this.openSnackBar("Appuntamento Confermato")
-                  this.drawerRef.toggle();
-                  this.selectedDate$.next(null);
-                }
-                else{
-                  this.openSnackBar("C'è stato un problema nel salvataggio dell'appuntamento'", 'danger');
-                }
-              },
-              err => {
-                console.error(err);
-                this.openSnackBar("C'è stato un problema nel salvataggio dell'appuntamento'", 'danger');
-              },
-              () => {}
-            )
-          }
-        });
-      },
-      error: err => console.error(err)
-    })
-  }
-
-  openSnackBar(message: string, style: avaibleStyle = 'success') {
-    this.notificationService.show(message, style)
-  }
-
-
-  americanToSmart(date: string) : string {
-    const valori: string[] = date.split('/');
-    return [
-      String(valori[1]).padStart(2, '0'),
-      String(valori[0]).padStart(2, '0'),
-      String(valori[2]).padStart(4, '0')
-    ].join("/");
-      ;
-  }
-
-  sameDateFromDate(slotDate: string, date: Date) : boolean {
-    //Dato che la data è scritta secondo lo stile americano, confronto singolarmente giorno, mese e anno
-    if (!date) {
-      return false;
-    }
-
-    const valori: string[] = date.toLocaleDateString().split('/');
-    const dayToday: number = +valori[0]
-    const monthToday: number = +valori[1]
-    const yearToday: number = +valori[2]
-    return this.sameDateFromDMY(slotDate, dayToday, monthToday, yearToday);
-  }
-
-  sameDateFromDMY(slotDate: string, day: number, month: number, year: number) : boolean {
-    //Dato che la data è scritta secondo lo stile americano, confronto singolarmente giorno, mese e anno
-    if (!slotDate) {
-      return false;
-    }
-    const valori: string[] = slotDate.split('/');
-    if (valori.length < 3){
-      return false;
-    }
-
-    return day === +valori[1] && month === +valori[0] && year === +valori[2];
-  }
+  SlotClick(slot: slot) { this.store.dispatch(setClickedSlot({ slot })) }
 }
