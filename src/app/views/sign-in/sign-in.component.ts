@@ -9,19 +9,39 @@ import { checkField } from 'src/app/shared/utils/utils';
     <mat-form-field appearance="fill" class="fullWidth">
       <mat-label>Email</mat-label>
       <mat-icon matPrefix>perm_identity</mat-icon>
-      <input type="text" required email [ngModel] name="email" placeholder="you@example.com" #email="ngModel"
-      [ngClass]="cF(email)" matInput >
+      <input matInput
+      type="text"
+      required
+      email
+      [ngModel]
+      [ngClass]="cF(email)"
+      name="email"
+      placeholder="you@example.com"
+      #email="ngModel"
+      >
     </mat-form-field>
     <br>
     <mat-form-field appearance="fill" class="fullWidth">
       <mat-label>Password</mat-label>
       <mat-icon matPrefix>lock</mat-icon>
-      <input [type]="GetPwType()" required [ngModel] name="password" placeholder="Password" #password="ngModel"
-      [ngClass]="cF(password)" matInput >
+      <input matInput
+      [type]="GetPwType()"
+      required
+      [ngModel]
+      [ngClass]="cF(password)"
+      name="password"
+      placeholder="Password"
+      #password="ngModel"
+      >
       <mat-icon class="pointer" matSuffix (click)="showPassword = !showPassword">{{showPassword ? "visibility_off" : "visibility"}}</mat-icon>
     </mat-form-field>
     <br>
-    <button mat-raised-button color="primary" type="submit" class="btn btn-primary fullWidth" [disabled]="f.invalid">
+    <button mat-raised-button
+    color="primary"
+    type="submit"
+    class="btn btn-primary fullWidth"
+    [disabled]="!f.valid"
+    >
       Accedi
     </button>
   </form>
@@ -36,11 +56,11 @@ export class SignInComponent {
   @Output() signin = new EventEmitter<NgForm>()
   showPassword: boolean = false;
 
-  constructor()
-  {
-  }
+  constructor() { }
 
   submitHandler(form: NgForm): void {
+    if(!form.valid)
+      return;
     /*this.http.post<any>(environment.apiUrl, form.value)
       .subscribe(() => {
         form.reset();
@@ -48,11 +68,7 @@ export class SignInComponent {
     this.signin.emit(form.value);
   }
 
-  cF(input: NgModel){
-    return checkField(input);
-  }
+  cF(input: NgModel) { return checkField(input); }
 
-  GetPwType(): string {
-    return this.showPassword ? 'text' : 'password';
-  }
+  GetPwType(): string { return this.showPassword ? 'text' : 'password'; }
 }

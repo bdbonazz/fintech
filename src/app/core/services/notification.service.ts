@@ -13,7 +13,7 @@ export class NotificationService {
   show(message: string, style : avaibleStyle = 'success') {
     this.message = message;
     this.style = style;
-    setTimeout(() => this.message = null, 25000);
+    setTimeout(() => this.message = null, 5000);
   }
 
   hide() {

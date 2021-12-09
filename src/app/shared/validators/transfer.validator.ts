@@ -24,8 +24,7 @@ export class TransferValidator {
       if (cardID && amount) {
         return this.cardService.getCards()
         .pipe(
-          map(res =>
-            {
+          map(res => {
               const index = res.findIndex(x => x._id === cardID);
               return index < 0
               ? { transfer: `Card Not Found` }

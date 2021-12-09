@@ -80,8 +80,7 @@ export class ContactComponent implements OnInit, OnDestroy {
     this.stateType$.pipe(
       take(1)
     ).subscribe((res: StateType) => {
-      switch(res.type)
-        {
+      switch(res.type) {
           case 'edit': this.store.dispatch(editContact({ contact }));
           case 'new': this.store.dispatch(addContact({ contact }));
         }

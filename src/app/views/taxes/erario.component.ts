@@ -65,7 +65,9 @@ export class ErarioComponent implements ControlValueAccessor, OnDestroy {
 
   sub = new Subscription();
   constructor(private fb: FormBuilder) {
-    this.sub.add(this.form.valueChanges.subscribe(res => { this.onChange(Object.assign({}, {valid: this.form.valid}, res)); } ))
+    this.sub.add(this.form.valueChanges.subscribe(
+      res => { this.onChange(Object.assign({}, {valid: this.form.valid}, res)); }
+    ))
   };
 
   ngOnDestroy() { this.sub.unsubscribe() };

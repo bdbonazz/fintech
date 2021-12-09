@@ -11,8 +11,7 @@ import { HttpClientModule } from '@angular/common/http';
     MaterialSharedModule,
     CommonModule,
     HttpClientModule,
-    RouterModule.forChild([
-      {
+    RouterModule.forChild([{
         path: '',
         component: DashboardComponent,
         children: [
@@ -26,8 +25,7 @@ import { HttpClientModule } from '@angular/common/http';
           { path: 'appointment', loadChildren: () => import('../../views/appointment/appointment.module').then(m => m.AppointmentModule) },
           { path: '', redirectTo: 'home', pathMatch: 'full'}
         ]
-      }
-    ])
+    }])
   ],
   exports: [RouterModule]
 })

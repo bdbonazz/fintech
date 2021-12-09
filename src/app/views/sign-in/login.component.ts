@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/api/auth.service';
 import { NotificationService } from 'src/app/core/services/notification.service';
-import { Credentials } from 'src/app/models/user';
 
 @Component({
   selector: 'ft-login',
@@ -24,25 +23,16 @@ import { Credentials } from 'src/app/models/user';
 export class LoginComponent{
   state: 'signin' | 'register' = 'signin'
 
-  constructor(public notificationService: NotificationService, private authService: AuthService, private router: Router){}
-  changeState(){
-    if (this.state == 'signin')
-      this.state = 'register';
-    else
-      this.state = 'signin';
-  }
+  constructor(public notificationService: NotificationService, private authService: AuthService, private router: Router) { }
+
+  changeState() { this.state = this.state == 'signin' ? 'register' : 'signin'; }
 
   signIn(form: any)
   {
-    //TODO
     this.authService.login(form.email, form.password).subscribe({
       next: (res) => {
-        if(res) {
-            this.router.navigateByUrl('/dashboard');
-        }
-        else {
-          this.notificationService.show('User not Found', 'danger');
-        }
+        if(res) { this.router.navigateByUrl('/dashboard/cards'); }
+        else { this.notificationService.show('User not Found', 'danger'); }
       },
       error: err => console.error(err)
     })
@@ -50,20 +40,15 @@ export class LoginComponent{
 
   register(form: any)
   {
-    const credential: Credentials = {
+    this.authService.register({
       email: form.email,
       name: form.name,
       surname: form.surname,
       password: form.password
-    }
-    this.authService.register(credential).subscribe({
+    }).subscribe({
       next: (res) => {
-        if(res) {
-            this.state = 'signin'
-        }
-        else {
-          this.notificationService.show('Error', 'warning');
-        }
+        if(res) { this.signIn(form); }
+        else { this.notificationService.show('Error', 'danger'); }
       },
       error: err => console.error(err)
     })

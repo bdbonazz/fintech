@@ -12,6 +12,10 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   width: 50%;
 }
 
+.almostHalfWidth {
+  width: 48%;
+}
+
 .fullWidth {
   width: 100%;
 }

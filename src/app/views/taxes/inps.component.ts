@@ -40,7 +40,7 @@ import { datesCheckValidator } from 'src/app/shared/validators/datesCheck.valida
           [errorStateMatcher]="inpsMatcher">
           <mat-datepicker-toggle matSuffix [for]="pickerDa"></mat-datepicker-toggle>
           <mat-datepicker #pickerDa></mat-datepicker>
-          <mat-error>Data Inizio Richiesta</mat-error>
+          <mat-error *ngIf="form.get('da')?.errors?.required">Data Inizio Richiesta</mat-error>
         </mat-form-field>
       </div>
       <div class="col">
@@ -53,7 +53,7 @@ import { datesCheckValidator } from 'src/app/shared/validators/datesCheck.valida
           [errorStateMatcher]="inpsMatcher" >
           <mat-datepicker-toggle matSuffix [for]="pickerA"></mat-datepicker-toggle>
           <mat-datepicker #pickerA></mat-datepicker>
-          <mat-error>Data Fine Richiesta</mat-error>
+          <mat-error *ngIf="form.get('a')?.errors?.required">Data Fine Richiesta</mat-error>
         </mat-form-field>
       </div>
       <div class="col">
@@ -107,7 +107,9 @@ export class InpsComponent implements ControlValueAccessor, OnDestroy {
 
   sub = new Subscription();
   constructor(private fb: FormBuilder) {
-    this.sub.add(this.form.valueChanges.subscribe(res => { this.onChange(Object.assign({}, {valid: this.form.valid}, res)); } ))
+    this.sub.add(this.form.valueChanges.subscribe(
+      res => { this.onChange(Object.assign({}, {valid: this.form.valid}, res)); }
+    ))
   };
 
   ngOnDestroy() { this.sub.unsubscribe() };

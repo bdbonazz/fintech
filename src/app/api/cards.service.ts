@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Card, CardForm } from '../models/card';
-import { CardMovements, Movement } from '../models/movement';
+import { CardMovements } from '../models/movement';
 
 @Injectable({
   providedIn: 'root'

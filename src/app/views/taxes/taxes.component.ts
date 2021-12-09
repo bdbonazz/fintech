@@ -13,6 +13,7 @@ import { CardSelectComponent } from '../cards/card-select.component';
 @Component({
   selector: 'ft-taxes',
   template: `
+  <div class="containter m-3">
     <form [formGroup]="form" (submit)="submitHandler()" >
       <ft-contribuente formControlName="contribuente"></ft-contribuente>
       <br>
@@ -62,6 +63,7 @@ import { CardSelectComponent } from '../cards/card-select.component';
         Conferma
       </button>
     </form>
+</div>
   `,
   styles: [
   ]
@@ -176,8 +178,7 @@ export class TaxesComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe((result: Card) => {
-      if(result)
-      {
+      if(result) {
         const obj = {
           contribuente: this.form.get('contribuente').value,
           erario: this.erario.value,

@@ -12,13 +12,16 @@ import { slot } from 'src/app/models/location';
   selector: 'ft-appointment',
   template: `
     <mat-drawer-container style="height: 100%; padding: 20px">
-      <mat-list>
-        <div mat-subheader>Carte</div>
-        <mat-list-item *ngFor="let location of locations$ | async" (click)="LocationClick(location._id)" style="cursor: pointer">
-          <mat-icon mat-list-icon>home</mat-icon>
-          <div mat-line>{{location.name}}<br>{{location.address}}</div>
-        </mat-list-item>
-      </mat-list>
+      <mat-spinner *ngIf="loading$ | async; else listBlock"></mat-spinner>
+      <ng-template #listBlock>
+        <mat-list>
+          <div mat-subheader>Carte</div>
+          <mat-list-item *ngFor="let location of locations$ | async" (click)="LocationClick(location._id)" style="cursor: pointer">
+            <mat-icon mat-list-icon>home</mat-icon>
+            <div mat-line>{{location.name}}<br>{{location.address}}</div>
+          </mat-list-item>
+        </mat-list>
+      </ng-template>
       <mat-drawer
       mode="side"
       position="end"
@@ -35,15 +38,17 @@ import { slot } from 'src/app/models/location';
           <mat-datepicker #picker></mat-datepicker>
         </mat-form-field>
         <mat-divider></mat-divider>
-        <mat-list *ngIf="selectedSlot$ | async as selectedSlot">
-          <div mat-subheader>Orari disponibili</div>
-          <div *ngIf="!selectedSlot.slots.length" class="alert alert-warning">Nessun Orario Disponibile</div>
-          <mat-list-item *ngFor="let slot of selectedSlot.slots" (click)="SlotClick(slot)" style="cursor: pointer">
-            <mat-icon mat-list-icon>watch_later</mat-icon>
-            <div mat-line>{{slot}}</div>
-          </mat-list-item>
-        </mat-list>
-
+        <mat-spinner *ngIf="loading$ | async; else elseBlock"></mat-spinner>
+        <ng-template #elseBlock>
+          <mat-list *ngIf="selectedSlot$ | async as selectedSlot">
+            <div mat-subheader>Orari disponibili</div>
+            <div *ngIf="!selectedSlot.slots.length" class="alert alert-warning">Nessun Orario Disponibile</div>
+            <mat-list-item *ngFor="let slot of selectedSlot.slots" (click)="SlotClick(slot)" style="cursor: pointer">
+              <mat-icon mat-list-icon>watch_later</mat-icon>
+              <div mat-line>{{slot}}</div>
+            </mat-list-item>
+          </mat-list>
+        </ng-template>
       </mat-drawer>
     </mat-drawer-container>
   `,
@@ -91,7 +96,9 @@ export class AppointmentComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
 
     this.sub.add(this.appointment$.pipe(
-    ).subscribe(dayWithSlot => this.store.dispatch(askAppointment({dayWithSlot}))));
+    ).subscribe(
+      dayWithSlot => this.store.dispatch(askAppointment({dayWithSlot}))
+      ));
 
     this.store.dispatch(loadLocations());
   }
@@ -111,8 +118,7 @@ ngOnDestroy(): void { this.sub.unsubscribe()}
   if(this.closedDays)
     {
       const index = this.closedDays.findIndex(x => x.locationId === this.appointment.Location._id)
-      if(index >= 0)
-      {
+      if(index >= 0) {
         const cd: closedDays = this.closedDays[index];
         const day = date.getDay();
         DayOk = !cd.closedDays.includes(day);

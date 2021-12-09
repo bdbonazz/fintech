@@ -41,9 +41,12 @@ import { CardsEffects } from './views/cards/store/cards.effects';
     }),
     StoreModule.forRoot({
       router: routerReducer,
-      cards: CardReducer,
+      //cards: CardReducer,
     }),
-    EffectsModule.forRoot([RouterEffects, CardsEffects]),
+    EffectsModule.forRoot([
+      RouterEffects,
+      //CardsEffects
+    ]),
     StoreRouterConnectingModule.forRoot(),
   ],
   providers: [],

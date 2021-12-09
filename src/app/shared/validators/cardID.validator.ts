@@ -13,8 +13,7 @@ export class CardIDValidator {
   validate(cardID_FieldName: string = '', parent: boolean = false): AsyncValidatorFn {
     return (control: AbstractControl) => {
       let cardID = '';
-      if(parent)
-      {
+      if(parent) {
         const cardID_Field = control.get(cardID_FieldName);
         if(!cardID_Field) {
           return of({ cardID: `Missing Field` });
@@ -30,12 +29,11 @@ export class CardIDValidator {
       : this.cardService.getCards()
       .pipe(
         map(res =>
-          {
-            return res.findIndex(x => x._id === cardID) < 0
-              ? { cardID: `Card Not Found` }
-              : null;
-          })
-        );
+          res.findIndex(x => x._id === cardID) < 0
+          ? { cardID: `Card Not Found` }
+          : null
+        )
+      );
     }
   }
 }
