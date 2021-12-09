@@ -9,6 +9,10 @@ import { UtilsModule } from 'src/app/shared/utils/utils.module';
 import { ContactListComponent } from './contact-list.component';
 import { ContactFormComponent } from './contact-form.component';
 import { MatDialogModule } from '@angular/material/dialog';
+import { StoreModule } from '@ngrx/store';
+import { EffectsModule } from '@ngrx/effects';
+import { ContactReducer } from './store/contacts.reducer';
+import { ContactsEffects } from './store/contacts.effects';
 
 
 @NgModule({
@@ -20,7 +24,11 @@ import { MatDialogModule } from '@angular/material/dialog';
     ReactiveFormsModule,
     MaterialSharedModule,
     MatDialogModule,
-    UtilsModule
+    UtilsModule,
+    StoreModule.forFeature('contacts', {
+      contacts: ContactReducer,
+    }),
+    EffectsModule.forFeature([ContactsEffects]),
   ]
 })
 export class ContactModule { }

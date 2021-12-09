@@ -3,7 +3,8 @@ export interface Comune {
   provincia: string;
 }
 
-export const comuni = [{"nome":"Abano Terme","provincia":"PD"},
+export const comuni = [
+{"nome":"Abano Terme","provincia":"PD"},
 {"nome":"Abbadia Cerreto","provincia":"LO"},
 {"nome":"Abbadia Lariana","provincia":"LC"},
 {"nome":"Abbadia San Salvatore","provincia":"SI"},
@@ -7906,4 +7907,5 @@ export const comuni = [{"nome":"Abano Terme","provincia":"PD"},
 {"nome":"Zumaglia","provincia":"BI"},
 {"nome":"Zumpano","provincia":"CS"},
 {"nome":"Zungoli","provincia":"AV"},
-{"nome":"Zungri","provincia":"VV"}]
+{"nome":"Zungri","provincia":"VV"}
+]

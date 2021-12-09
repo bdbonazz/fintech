@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { NgForm, NgModel } from '@angular/forms';
 import { ParentErrorStateMatcher } from 'src/app/shared/errorStateMatcher/parentErrorStateMatcher';
 import { checkField } from 'src/app/shared/utils/utils';
@@ -80,8 +80,7 @@ z
 
   passwordMatcher = new ParentErrorStateMatcher('equalField');
 
-  constructor() {
-  }
+  constructor() { }
 
   submitHandler(form: NgForm): void {
     if(!form.valid)

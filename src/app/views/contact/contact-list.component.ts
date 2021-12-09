@@ -13,7 +13,10 @@ import { Contact } from 'src/app/models/contact';
       </mat-form-field>
       <hr>
       <h3>Contatti</h3>
-      <mat-list role="list">
+      <mat-spinner *ngIf="loading"></mat-spinner>
+      <mat-list
+      *ngIf="!loading"
+      role="list">
         <mat-list-item  *ngFor="let contact of contacts | filterContacts: currentSearchText ">
           <mat-icon mat-list-icon>account_circle</mat-icon>
           <div mat-line>{{contact.name}}<br>{{contact.iban}}</div>
@@ -30,6 +33,7 @@ import { Contact } from 'src/app/models/contact';
 export class ContactListComponent implements OnInit {
 
   currentSearchText: string = '';
+  @Input() loading: boolean = false;
   @Input() contacts: Contact[] | null = null;
   @Output() select = new EventEmitter<string>();
   @Output() edit = new EventEmitter<string>();

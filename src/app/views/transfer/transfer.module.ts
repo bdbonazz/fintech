@@ -8,6 +8,10 @@ import { MaterialSharedModule } from 'src/app/shared/material/material.module';
 import { HttpClientModule } from '@angular/common/http';
 import { MatDialogModule } from '@angular/material/dialog';
 import { ValidatorsModule } from 'src/app/shared/validators/validators.module';
+import { StoreModule } from '@ngrx/store';
+import { EffectsModule } from '@ngrx/effects';
+import { ContactReducer } from '../contact/store/contacts.reducer';
+import { ContactsEffects } from '../contact/store/contacts.effects';
 
 
 @NgModule({
@@ -19,7 +23,11 @@ import { ValidatorsModule } from 'src/app/shared/validators/validators.module';
     MaterialSharedModule,
     HttpClientModule,
     MatDialogModule,
-    ValidatorsModule
+    ValidatorsModule,
+    StoreModule.forFeature('contacts', {
+      contacts: ContactReducer,
+    }),
+    EffectsModule.forFeature([ContactsEffects]),
   ]
 })
 export class TransferModule { }

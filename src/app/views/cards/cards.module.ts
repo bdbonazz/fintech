@@ -23,7 +23,11 @@ import { EffectsModule } from '@ngrx/effects';
     FormsModule,
     ReactiveFormsModule,
     MaterialSharedModule,
-    UtilsModule
+    UtilsModule,
+    StoreModule.forFeature('cards', {
+      cards: CardReducer,
+    }),
+    EffectsModule.forFeature([CardsEffects]),
   ],
   exports: [CardSelectComponent]
 })

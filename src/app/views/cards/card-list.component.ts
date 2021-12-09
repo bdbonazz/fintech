@@ -15,7 +15,7 @@ import { Card } from 'src/app/models/card';
   </mat-list>
   <mat-divider></mat-divider>
   <br>
-  <button mat-raised-button color="accent" type="button" class="btn btn-accent" style="width:100%" (click)="btnClickHandler()">
+  <button mat-raised-button color="accent" type="button" class="btn btn-accent fullWidth" (click)="btnClickHandler()">
     Aggiungi
   </button>
   `,

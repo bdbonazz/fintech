@@ -1,12 +1,4 @@
-import {
-  Component,
-  Input,
-  HostBinding,
-  OnDestroy,
-  OnInit,
-  AfterViewInit,
-  Self
-} from '@angular/core';
+import { Component, Input, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { BehaviorSubject, combineLatest, Subscription } from 'rxjs';
 import { checkFieldReactive, EqualsIgnoreCase, IncludesIgnoreCase, removeDuplicates } from 'src/app/shared/utils/utils';
@@ -58,7 +50,22 @@ import { comuneValidator } from 'src/app/shared/validators/comune.validator';
       <mat-error>Sesso richiesto</mat-error>
     </mat-form-field>
     <br>
-    <mat-form-field appearance="fill" class="fullWidth">
+    <mat-form-field appearance="fill" class="halfWidth">
+      <mat-label>Comune di Nascita</mat-label>
+      <input type="text"
+      formControlName="birthPlace"
+      placeholder="Castel Goffredo"
+      [ngClass]="cF('birthPlace')"
+      [matAutocomplete]="autoComune"
+      matInput >
+      <mat-autocomplete autoActiveFirstOption  #autoComune="matAutocomplete">
+        <mat-option *ngFor="let comune of filtroComuni$ | async"
+        [value]="comune.nome">{{comune.nome}}</mat-option>
+      </mat-autocomplete>
+      <mat-error *ngIf="form.get('birthProvince').errors?.required">Comune di nascita richiesto</mat-error>
+      <mat-error *ngIf="form.get('birthProvince').errors?.comune">Comune Non Esistente</mat-error>
+    </mat-form-field>
+    <mat-form-field appearance="fill" class="halfWidth">
       <mat-label>Provincia di Nascita</mat-label>
       <input type="text"
       formControlName="birthProvince"
@@ -74,22 +81,6 @@ import { comuneValidator } from 'src/app/shared/validators/comune.validator';
       </mat-autocomplete>
       <mat-error *ngIf="form.get('birthProvince').errors?.required">Provincia di nascita richiesta</mat-error>
       <mat-error *ngIf="form.get('birthProvince').errors?.provincia">Provincia Non Esistente</mat-error>
-    </mat-form-field>
-    <br>
-    <mat-form-field appearance="fill" class="fullWidth">
-      <mat-label>Comune di Nascita</mat-label>
-      <input type="text"
-      formControlName="birthPlace"
-      placeholder="Castel Goffredo"
-      [ngClass]="cF('birthPlace')"
-      [matAutocomplete]="autoComune"
-      matInput >
-      <mat-autocomplete autoActiveFirstOption  #autoComune="matAutocomplete">
-        <mat-option *ngFor="let comune of filtroComuni$ | async"
-        [value]="comune.nome">{{comune.nome}}</mat-option>
-      </mat-autocomplete>
-      <mat-error *ngIf="form.get('birthProvince').errors?.required">Comune di nascita richiesto</mat-error>
-      <mat-error *ngIf="form.get('birthProvince').errors?.comune">Comune Non Esistente</mat-error>
     </mat-form-field>
   </form>
   `,

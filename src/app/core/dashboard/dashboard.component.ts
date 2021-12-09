@@ -1,11 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { AuthService } from 'src/app/api/auth.service';
 import { UserStore } from '../guards/user.store';
 
 @Component({
   selector: 'ft-dashboard',
   template: `
-    <mat-drawer-container style="height:100%">
+    <mat-drawer-container style="height:100%" *ngIf="(userStore.user$ | async) as userStore">
       <mat-drawer #drawer mode="side" style="height:100%" [opened]="true">
         <h2 matLine>Menu</h2>
         <mat-list style="cursor:pointer">
@@ -35,7 +35,7 @@ import { UserStore } from '../guards/user.store';
           </mat-list-item>
           <mat-list-item (click)="LogOut()">
             <mat-icon matListIcon>perm_identity</mat-icon>
-            <h3 matLine>{{(userStore.user$ | async).displayName}}</h3>
+            <h3 matLine>{{userStore.displayName}}</h3>
             <mat-divider></mat-divider>
             <h3 matLine>Logout</h3>
           </mat-list-item>
@@ -56,14 +56,9 @@ import { UserStore } from '../guards/user.store';
   styles: [
   ]
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent {
 
-  constructor(public userStore: UserStore, private authService: AuthService) {
-
-  }
-
-  ngOnInit(): void {
-  }
+  constructor(public userStore: UserStore, private authService: AuthService) { }
 
   LogOut(): void{
     this.authService.logout();

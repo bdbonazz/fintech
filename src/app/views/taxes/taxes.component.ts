@@ -1,4 +1,3 @@
-import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
@@ -59,7 +58,7 @@ import { CardSelectComponent } from '../cards/card-select.component';
       <h2>Saldo totale: € {{totale$ | async}}</h2>
       <br>
       <br>
-      <button mat-raised-button color="primary" type="submit" class="btn btn-primary" style="width:100%" [disabled]="!(valid$ | async)">
+      <button mat-raised-button color="primary" type="submit" class="btn btn-primary fullWidth" [disabled]="!(valid$ | async)">
         Conferma
       </button>
     </form>

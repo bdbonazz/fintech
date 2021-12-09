@@ -1,11 +1,4 @@
-import {
-  Component,
-  Input,
-  HostBinding,
-  Output,
-  EventEmitter,
-  OnDestroy,
-} from '@angular/core';
+import { Component, Input, HostBinding, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { ParentErrorStateMatcher } from 'src/app/shared/errorStateMatcher/parentErrorStateMatcher';

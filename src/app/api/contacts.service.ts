@@ -12,6 +12,7 @@ export class ContactsService {
   constructor(private http: HttpClient) {}
 
   getContacts(): Observable<Contact[]> {
+    console.log('getContacts');
     return this.http.get<Contact[]>(environment.apiUrl + '/contacts');
   }
 

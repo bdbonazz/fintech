@@ -12,6 +12,8 @@ import { MovementReducer } from './store/movements.reducer';
 import { StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 import { MovementsEffects } from './store/movements.effects';
+import { CardsEffects } from '../cards/store/cards.effects';
+import { CardReducer } from '../cards/store/cards.reducer';
 
 
 @NgModule({

@@ -58,8 +58,7 @@ import { checkFieldReactive } from 'src/app/shared/utils/utils';
     [disabled]="!form.valid"
     color="primary"
     type="submit"
-    class="btn btn-primary"
-    style="width:100%"
+    class="btn btn-primary fullWidth"
     >
       Aggiungi carta
     </button>
@@ -73,8 +72,7 @@ import { checkFieldReactive } from 'src/app/shared/utils/utils';
     (click)="close.emit()"
     color="warn"
     type="button"
-    class="btn btn-warn"
-    style="width:100%"
+    class="btn btn-warn fullWidth"
     >
       Annulla
     </button>

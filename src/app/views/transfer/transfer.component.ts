@@ -19,7 +19,7 @@ import { ContactComponent } from '../contact/contact.component';
   selector: 'ft-transfer',
   template: `
   <form [formGroup]="form" #formDirective="ngForm" (submit)="submitHandler(formDirective)" >
-    <button mat-raised-button color="accent" class="btn btn-accent" style="width:100%" type="button" (click)="getContact()" >
+    <button mat-raised-button color="accent" class="btn btn-accent fullWidth" type="button" (click)="getContact()" >
       Lista Contatti
     </button>
     <br>
@@ -73,7 +73,7 @@ import { ContactComponent } from '../contact/contact.component';
     <br>
     <br>
     <span *ngIf="form.errors?.transfer" style="color:red">{{form.errors.transfer}}</span>
-    <button mat-raised-button color="primary" type="submit" class="btn btn-primary" style="width:100%" [disabled]="!form.valid">
+    <button mat-raised-button color="primary" type="submit" class="btn btn-primary fullWidth" [disabled]="!form.valid">
       Trasferisci Denaro
     </button>
     <br>

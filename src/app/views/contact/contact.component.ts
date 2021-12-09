@@ -1,19 +1,21 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Contact } from 'src/app/models/contact';
 import { MatDialogRef } from '@angular/material/dialog';
-import { ContactsService } from 'src/app/api/contacts.service';
-import { avaibleStyle, NotificationService } from 'src/app/core/services/notification.service';
-import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
-import { map, switchMap, take, withLatestFrom } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
+import { filter, take } from 'rxjs/operators';
+import { Store } from '@ngrx/store';
+import { selectChoosenContactState, selectContactsState, selectFeatureContact, selectLoadingState, selectSelectedContactState, selectStateState } from './store/contacts.selectors';
+import { addContact, deleteContact, editContact, loadContacts, setState } from './store/contacts.actions';
+import { StateType } from './store/contacts.reducer';
 
-export type State = { type: 'list', id: string } | { type: 'new' } | { type: 'edit', id: string }
 
 @Component({
   selector: 'ft-contact',
   template: `
-  <div *ngIf="state$ | async as state">
-    <ng-container *ngIf="state.type === 'list'">
+  <div *ngIf="stateType$ | async as stateType">
+    <ng-container *ngIf="stateType.type === 'list'">
       <ft-contact-list
+        [loading]="loading$ | async"
         [contacts]="contacts$ | async"
         (delete)="removeContactHanlder($event)"
         (edit)="editContactHanlder($event)"
@@ -23,14 +25,14 @@ export type State = { type: 'list', id: string } | { type: 'new' } | { type: 'ed
       mat-raised-button
       color="primary"
       type="button"
-      class="btn btn-primary"
-      style="width:100%"
-      (click)="state$.next({ type: 'new'})">
+      class="btn btn-primary fullWidth"
+      (click)="newContactHanlder()">
         Nuovo contatto
       </button>
     </ng-container>
-    <ng-container *ngIf="state.type === 'new' || state.type === 'edit'">
+    <ng-container *ngIf="stateType.type === 'new' || stateType.type === 'edit'">
       <ft-contact-form
+        [loading]="loading$ | async"
         [contact]="selectedContact$ | async"
         (saveContact)="saveContactHanlder($event)"
         (close)="backToList()"
@@ -41,116 +43,56 @@ export type State = { type: 'list', id: string } | { type: 'new' } | { type: 'ed
   styles: [
   ]
 })
-export class ContactComponent implements OnDestroy {
+export class ContactComponent implements OnInit, OnDestroy {
   sub = new Subscription();
 
-  contacts$ = new BehaviorSubject<Contact[]>([]);
-  state$ = new BehaviorSubject<State>({ type: 'list', id: '' })
+  tempo$ = this.store.select(selectFeatureContact);
+  contacts$ = this.store.select(selectContactsState);
+  stateType$ = this.store.select(selectStateState);
+  loading$ = this.store.select(selectLoadingState);
 
-  selectedContact$ = combineLatest([this.contacts$, this.state$]).pipe(
-    map(([contacts, state]) => {
-      if(state.type === 'new') {
-        return null;
-      }
+  selectedContact$ = this.store.select(selectSelectedContactState);
 
-      const index = contacts.findIndex(x => x._id === state.id);
-      return index >= 0 ? contacts[index] : null;
-    })
-  );
+  constructor(
+    private dialogRef: MatDialogRef<ContactComponent>,
+    private store: Store
+    ) { }
 
-  constructor(public notificationService: NotificationService, public dialogRef: MatDialogRef<ContactComponent>, private contactService : ContactsService) {
-    contactService.getContacts().subscribe({
-      next: res => this.contacts$.next(res),
-      error: err => console.error(err)
-    })
-  }
-
-  ngOnDestroy(): void {
-    this.sub.unsubscribe();
-  }
-
-  selectContactHanlder(_id: string) {
-    this.state$.next({ type: 'list', id: _id});
-    this.selectedContact$.pipe(
-      take(1)
-      ).subscribe({
-        next: res => {
-          this.dialogRef.close(res);
-        },
-        error: err => console.error(err)
-      })
-  }
-
-  removeContactHanlder(_id: string) {
-    this.contactService.deleteContact(_id).pipe(
-      withLatestFrom(this.contacts$)
-    ).subscribe({
-      next: ([success, contacts]) => {
-        if (success) {
-          this.contacts$.next(contacts.filter(x => x._id !== _id))
-        }
-        else {
-          this.openSnackBar("C'è stato un errore");
-        }
-      },
-      error: err => {
-        this.openSnackBar("C'è stato un errore");
-        console.error(err);
-      }
-    });
-  }
-
-  editContactHanlder(_id: string) {
-    this.state$.next({ type: 'edit', id: _id});
-  }
-
-  private editContact(contact: Partial<Contact>) : Observable<Contact[]>
+  ngOnInit()
   {
-    return  this.selectedContact$.pipe(
-      take(1),
-      map(res => Object.assign({}, res, contact)),
-      switchMap(res => this.contactService.patchContact(res)),
-      withLatestFrom(this.contacts$),
-      map(([patchedContat, contacts]) => contacts.map(x => x._id === patchedContat._id ? patchedContat : x))
-      )
-  }
-
-  private newContact(contact: Partial<Contact>) : Observable<Contact[]>
-  {
-    return  this.contactService.addContact(contact).pipe(
-      withLatestFrom(this.contacts$),
-      map(([newContact, contacts]) => [...contacts, newContact])
-    )
-  }
-
-  saveContactHanlder(contact: Partial<Contact>) {
-    this.state$.pipe(
-      take(1),
-      switchMap((res : State) => {
-        switch(res.type)
-        {
-          case 'edit': return this.editContact(contact);
-          case 'new': return this.newContact(contact);
-          default: return this.contacts$;
-        }
-      })
+    this.sub.add(this.store.select(selectChoosenContactState).pipe(
+      filter(x => !!x)
     ).subscribe({
       next: res => {
-        this.contacts$.next(res);
-        this.backToList();
+        this.dialogRef.close(res);
       },
-      error: err => {
-        this.openSnackBar("C'è stato un errore");
-        console.error(err);
-      }
-    });
+      error: err => console.error(err)
+    }));
+
+    this.store.dispatch(loadContacts());
   }
 
-  backToList(){
-    this.state$.next({ type: 'list', id: '' });
+  ngOnDestroy(): void { this.sub.unsubscribe(); }
+
+  removeContactHanlder(_id: string) { this.store.dispatch(deleteContact({ id : _id })) }
+
+  saveContactHanlder(contact: Partial<Contact>) {
+    this.stateType$.pipe(
+      take(1)
+    ).subscribe((res: StateType) => {
+      switch(res.type)
+        {
+          case 'edit': this.store.dispatch(editContact({ contact }));
+          case 'new': this.store.dispatch(addContact({ contact }));
+        }
+    })
   }
 
-  openSnackBar(message: string, style: avaibleStyle = 'success') {
-    this.notificationService.show(message, style)
-  }
+  selectContactHanlder(_id: string) { this.store.dispatch(setState({ value : { type: 'list', id: _id } })) }
+
+  editContactHanlder(_id: string) { this.store.dispatch(setState({ value : { type: 'edit', id: _id } })) }
+
+  newContactHanlder() { this.store.dispatch(setState({ value : { type: 'new' } })) }
+
+  backToList() { this.store.dispatch(setState({ value : { type: 'list', id: ''} })) }
 }

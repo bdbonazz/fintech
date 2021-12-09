@@ -28,7 +28,7 @@ export const selectSelectedCardIdState = createSelector(
 export const selectSelectedCardState = createSelector(
   selectCardsState,
   selectSelectedCardIdState,
-  (cards, selectedCardId) => cards.find(x => x._id === selectedCardId)
+  (cards, selectedCardId) => cards && selectedCardId ? cards.find(x => x._id === selectedCardId) : null
 )
 
 export const selectMovementsState = createSelector(

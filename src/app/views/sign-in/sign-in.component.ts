@@ -21,7 +21,7 @@ import { checkField } from 'src/app/shared/utils/utils';
       <mat-icon class="pointer" matSuffix (click)="showPassword = !showPassword">{{showPassword ? "visibility_off" : "visibility"}}</mat-icon>
     </mat-form-field>
     <br>
-    <button mat-raised-button color="primary" type="submit" class="btn btn-primary" style="width:100%" [disabled]="f.invalid">
+    <button mat-raised-button color="primary" type="submit" class="btn btn-primary fullWidth" [disabled]="f.invalid">
       Accedi
     </button>
   </form>
