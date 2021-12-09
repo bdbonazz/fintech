@@ -4,7 +4,7 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
-import { selectChoosenContactState, selectContactsState, selectFeatureContact, selectLoadingState, selectSelectedContactState, selectStateState } from './store/contacts.selectors';
+import { selectContactChoosenContactState, selectContactContactsState, selectFeatureContact, selectContactLoadingState, selectContactSelectedContactState, selectContactStateState } from './store/contacts.selectors';
 import { addContact, deleteContact, editContact, loadContacts, setState } from './store/contacts.actions';
 import { StateType } from './store/contacts.reducer';
 
@@ -47,11 +47,11 @@ export class ContactComponent implements OnInit, OnDestroy {
   sub = new Subscription();
 
   tempo$ = this.store.select(selectFeatureContact);
-  contacts$ = this.store.select(selectContactsState);
-  stateType$ = this.store.select(selectStateState);
-  loading$ = this.store.select(selectLoadingState);
+  contacts$ = this.store.select(selectContactContactsState);
+  stateType$ = this.store.select(selectContactStateState);
+  loading$ = this.store.select(selectContactLoadingState);
 
-  selectedContact$ = this.store.select(selectSelectedContactState);
+  selectedContact$ = this.store.select(selectContactSelectedContactState);
 
   constructor(
     private dialogRef: MatDialogRef<ContactComponent>,
@@ -60,7 +60,7 @@ export class ContactComponent implements OnInit, OnDestroy {
 
   ngOnInit()
   {
-    this.sub.add(this.store.select(selectChoosenContactState).pipe(
+    this.sub.add(this.store.select(selectContactChoosenContactState).pipe(
       filter(x => !!x)
     ).subscribe({
       next: res => {

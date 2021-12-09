@@ -16,6 +16,11 @@ export class CardsEffects {
     private notificationService: NotificationService
   ) {}
 
+  catchError$ = createEffect(() => this.actions.pipe(
+    ofType(loadCardsFail, deleteCardFail, addCardFail),
+    tap(err => console.error(err))
+  ), { dispatch: false })
+
   setDrawer$ = createEffect(() => this.actions.pipe(
     ofType(setDrawer),
     map(({ value }) =>  value ? openDrawer() : closeDrawer()
@@ -25,7 +30,7 @@ export class CardsEffects {
     ofType(loadCards),
     switchMap(() => this.cardsService.getCards().pipe(
       map(cards => loadCardsSuccess({ cards })),
-      catchError(() => of(loadCardsFail()))
+      catchError(err => of(loadCardsFail({ err })))
     ))
   ))
 
@@ -38,13 +43,15 @@ export class CardsEffects {
     ofType(deleteCard),
     mergeMap(({ id }) => this.cardsService.deleteCard(id).pipe(
       map(() => deleteCardSuccess({ id })),
-      catchError(() => of(deleteCardFail))
+      catchError(err => of(deleteCardFail({ err })))
     ))
   ))
+
   deleteCardSuccess$ = createEffect(() => this.actions.pipe(
     ofType(deleteCardSuccess),
     tap(_ => this.notificationService.show('Carta Rimossa con Successo'))
   ), { dispatch: false })
+
   deleteCardFail$ = createEffect(() => this.actions.pipe(
     ofType(deleteCardFail),
     tap(_ => this.notificationService.show("C'è stato un problema nella rimozione della carta'", 'danger'))
@@ -55,13 +62,15 @@ export class CardsEffects {
     ofType(addCard),
     mergeMap(({ card }) => this.cardsService.addCard(card).pipe(
       map(addedCard => addCardSuccess({ card: addedCard })),
-      catchError(() => of(addCardFail))
+      catchError(err => of(addCardFail({ err })))
     ))
   ))
+
   addCardSuccess$ = createEffect(() => this.actions.pipe(
     ofType(addCardSuccess),
     tap(_ => this.notificationService.show('Carta Aggiunta con Successo'))
   ), { dispatch: false })
+
   addCardFail$ = createEffect(() => this.actions.pipe(
     ofType(addCardFail),
     tap(_ => this.notificationService.show("C'è stato un problema nel salvataggio della carta", 'danger'))

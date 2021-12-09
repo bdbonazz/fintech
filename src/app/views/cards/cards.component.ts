@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { CardForm } from 'src/app/models/card';
 import { addCard, deleteCard, goToCardDetail, loadCards, setDrawer } from './store/cards.actions';
-import { selectCardsState, selectClearCountState, selectLoadingState, selectOpenedDrawerState } from './store/cards.selectors';
+import { selectCardCardsState, selectCardClearCountState, selectCardLoadingState, selectCardOpenedDrawerState } from './store/cards.selectors';
 
 @Component({
   selector: 'ft-cards',
@@ -33,10 +33,10 @@ import { selectCardsState, selectClearCountState, selectLoadingState, selectOpen
 })
 export class CardsComponent implements OnInit {
 
-  clearCount$ = this.store.select(selectClearCountState);
-  openedDrawer$ = this.store.select(selectOpenedDrawerState);
-  loading$ = this.store.select(selectLoadingState);
-  cards$ = this.store.select(selectCardsState);
+  clearCount$ = this.store.select(selectCardClearCountState);
+  openedDrawer$ = this.store.select(selectCardOpenedDrawerState);
+  loading$ = this.store.select(selectCardLoadingState);
+  cards$ = this.store.select(selectCardCardsState);
 
   constructor(
     private store: Store

@@ -12,7 +12,7 @@ import { CardIDValidator } from 'src/app/shared/validators/cardID.validator';
 import { ibanValidator } from 'src/app/shared/validators/iban.validator';
 import { TransferValidator } from 'src/app/shared/validators/transfer.validator';
 import { loadCards } from '../cards/store/cards.actions';
-import { selectCardsState } from '../cards/store/cards.selectors';
+import { selectCardCardsState } from '../cards/store/cards.selectors';
 import { ContactComponent } from '../contact/contact.component';
 
 @Component({
@@ -103,7 +103,7 @@ export class TransferComponent implements OnInit {
     return this.form.get('iban').errors;
   }
 
-  cards$ = this.store.select(selectCardsState);
+  cards$ = this.store.select(selectCardCardsState);
   constructor(
     private store: Store,
     private transferService: TransferService,

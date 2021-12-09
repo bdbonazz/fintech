@@ -19,12 +19,17 @@ export class AppointmentsEffects {
     public dialog: MatDialog,
   ) {}
 
+  catchError$ = createEffect(() => this.actions.pipe(
+    ofType(loadLocationsFail, loadSlotsFail, addAppointmentFail),
+    tap(err => console.error(err))
+  ), { dispatch: false })
+
 
   loadLocations$ = createEffect(() => this.actions.pipe(
     ofType(loadLocations),
     switchMap(() => this.appointmentService.getLocations().pipe(
       map(locations => loadLocationsSuccess({ locations })),
-      catchError(() => of(loadLocationsFail()))
+      catchError(err => of(loadLocationsFail({err})))
     ))
   ))
 
@@ -41,7 +46,7 @@ export class AppointmentsEffects {
     ofType(loadSlots),
     switchMap(({ id }) => this.appointmentService.getSlots(id).pipe(
       map(daysWithSlots => loadSlotsSuccess({ daysWithSlots })),
-      catchError(() => of(loadSlotsFail()))
+      catchError(err => of(loadSlotsFail({ err })))
     ))
   ))
 
@@ -66,8 +71,8 @@ export class AppointmentsEffects {
   addAppointment$ = createEffect(() => this.actions.pipe(
     ofType(addAppointment),
     switchMap(({ dayWithSlot }) => this.appointmentService.addAppointment(dayWithSlot).pipe(
-      map(res => res ? addAppointmentSuccess() : addAppointmentFail()),
-      catchError(() => of(addAppointmentFail()))
+      map(res => res ? addAppointmentSuccess() : addAppointmentFail({err: "L'appuntamento non è stato aggiunto correttamente"})),
+      catchError(err => of(addAppointmentFail({ err })))
     ))
   ))
 

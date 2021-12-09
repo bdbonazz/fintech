@@ -1,11 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
+import { go } from 'src/app/store/router.actions';
 import { loadCards } from '../cards/store/cards.actions';
-import { selectCardsState } from '../cards/store/cards.selectors';
-import { getMovements, loadMoreMovements, selectCardId } from './store/movements.actions';
-import { selectGetMovementsState, selectMovementsState, selectSelectedCardIdState, selectSelectedCardState, selectShouldLoadMoreState, selectTotalState } from './store/movements.selectors';
+import { selectCardCardsState } from '../cards/store/cards.selectors';
+import { getMovements, loadMoreMovements } from './store/movements.actions';
+import { selectMovementGetMovementsState, selectMovementsState, selectMovementSelectedCardIdState, selectMovementSelectedCardState, selectMovementShouldLoadMoreState, selectMovementTotalState } from './store/movements.selectors';
 
 @Component({
   selector: 'ft-movements',
@@ -24,7 +24,6 @@ import { selectGetMovementsState, selectMovementsState, selectSelectedCardIdStat
     <br>
     <div *ngIf="movements$ | async as movements">
       <mat-accordion *ngIf="movements.length">
-        <!--<ft-movement *ngFor="let movement of movements" [movement]="movement"></ft-movement>-->
         <ft-movement *ngFor="let movement of movements"
         [date]="movement.timestamp | date"
         [type]="movement.type"
@@ -47,35 +46,28 @@ export class MovementsComponent implements OnInit, OnDestroy {
 
   movementsToShowChunkLenght = 5;
 
-  cards$ = this.store.select(selectCardsState);
-  selectedCardId$ = this.store.select(selectSelectedCardIdState);
-  selectedCard$ = this.store.select(selectSelectedCardState);
+  cards$ = this.store.select(selectCardCardsState);
+  selectedCardId$ = this.store.select(selectMovementSelectedCardIdState);
+  selectedCard$ = this.store.select(selectMovementSelectedCardState);
 
   movements$ = this.store.select(selectMovementsState);
-  total$ = this.store.select(selectTotalState);
-  shouldLoadMore$ = this.store.select(selectShouldLoadMoreState);
+  total$ = this.store.select(selectMovementTotalState);
+  shouldLoadMore$ = this.store.select(selectMovementShouldLoadMoreState);
 
   constructor(
-    private activatedRoute: ActivatedRoute,
     private store: Store
     ) { }
 
   ngOnInit(): void {
     this.sub.add(
-      this.activatedRoute.params.subscribe({
-        next: res => this.store.dispatch(selectCardId({id: res.cardId})),
-        error: err => console.error(err)
-      })
-    );
-    this.sub.add(
-      this.store.select(selectGetMovementsState).subscribe(
+      this.store.select(selectMovementGetMovementsState).subscribe(
         res => this.store.dispatch(getMovements(res)
         ))
     );
     this.store.dispatch(loadCards())
   }
 
-  changeCard(cardId: string) { this.store.dispatch(selectCardId({id: cardId})); }
+  changeCard(cardId: string) { this.store.dispatch(go({ path: ['dashboard', 'movements', cardId] })); }
 
   LoadMoreMovements() { this.store.dispatch(loadMoreMovements()); }
 

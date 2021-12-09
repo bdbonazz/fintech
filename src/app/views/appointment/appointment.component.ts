@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 import { filter, take } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
-import { selectAppointmentState, selectDaysWithSlotsState, selectLoadingState, selectLocationsState, selectOpenedDrawerState, selectSelectedDateState, selectSelectedLocationIdState, selectSelectedLocationState, selectSelectedSlotState } from './store/appointments.selectors';
+import { selectAppointmentNewAppointmentState, selectAppointmentDaysWithSlotsState, selectAppointmentLoadingState, selectAppointmentLocationsState, selectAppointmentOpenedDrawerState, selectAppointmentSelectedDateState, selectAppointmentSelectedLocationIdState, selectAppointmentSelectedLocationState, selectAppointmentSelectedSlotState } from './store/appointments.selectors';
 import { sameDateFromDMY } from 'src/app/shared/utils/utils';
 import { askAppointment, loadLocations, setClickedSlot, setLocationID, setSelectedDate } from './store/appointments.actions';
 import { Subscription } from 'rxjs';
@@ -52,12 +52,12 @@ import { slot } from 'src/app/models/location';
 })
 export class AppointmentComponent implements OnInit, OnDestroy {
 
-  loading$ = this.store.select(selectLoadingState);
-  openedDrawer$ = this.store.select(selectOpenedDrawerState);
+  loading$ = this.store.select(selectAppointmentLoadingState);
+  openedDrawer$ = this.store.select(selectAppointmentOpenedDrawerState);
 
-  locations$ = this.store.select(selectLocationsState);
-  selectedLocationId$ = this.store.select(selectSelectedLocationIdState);
-  selectedLocation$ = this.store.select(selectSelectedLocationState);
+  locations$ = this.store.select(selectAppointmentLocationsState);
+  selectedLocationId$ = this.store.select(selectAppointmentSelectedLocationIdState);
+  selectedLocation$ = this.store.select(selectAppointmentSelectedLocationState);
   /*
   //Test Funzionamento Chiusura per Giorni della Settimana
   closedDays: closedDays[] | null = [
@@ -70,9 +70,9 @@ export class AppointmentComponent implements OnInit, OnDestroy {
       closedDays: [1, 2, 3]
     },
   ];*/
-  daysWithSlots$ = this.store.select(selectDaysWithSlotsState);
-  selectedDate$ = this.store.select(selectSelectedDateState);
-  selectedSlot$ = this.store.select(selectSelectedSlotState);
+  daysWithSlots$ = this.store.select(selectAppointmentDaysWithSlotsState);
+  selectedDate$ = this.store.select(selectAppointmentSelectedDateState);
+  selectedSlot$ = this.store.select(selectAppointmentSelectedSlotState);
   /*
   //Utils se servisse specificare per che location mi sto prenotando
   appointment: {
@@ -83,7 +83,7 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     slot: null
   };*/
 
-  appointment$ = this.store.select(selectAppointmentState);
+  appointment$ = this.store.select(selectAppointmentNewAppointmentState);
 
   sub = new Subscription();
   constructor(private store: Store) { }

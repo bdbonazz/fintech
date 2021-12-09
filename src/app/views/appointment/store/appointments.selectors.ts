@@ -7,61 +7,61 @@ import { AppointmentState } from './appointments.reducer';
 
 export const selectFeatureAppointment = createFeatureSelector<{appointments: AppointmentState}>('appointments');
 
-export const selectLocationsState = createSelector(
+export const selectAppointmentLocationsState = createSelector(
   selectFeatureAppointment,
   state => state.appointments.locations
 );
 
-export const selectLoadingState = createSelector(
+export const selectAppointmentLoadingState = createSelector(
   selectFeatureAppointment,
   state => state.appointments.loading
 )
 
-export const selectOpenedDrawerState = createSelector(
+export const selectAppointmentOpenedDrawerState = createSelector(
   selectFeatureAppointment,
   state => state.appointments.openedDrawer
 )
 
-export const selectSelectedLocationIdState = createSelector(
+export const selectAppointmentSelectedLocationIdState = createSelector(
   selectFeatureAppointment,
   state => state.appointments.selectedLocationId
 )
 
-export const selectSelectedLocationState = createSelector(
-  selectLocationsState,
-  selectSelectedLocationIdState,
+export const selectAppointmentSelectedLocationState = createSelector(
+  selectAppointmentLocationsState,
+  selectAppointmentSelectedLocationIdState,
   (locations, selectedLocationId) => {
     const index = locations.findIndex(x => x._id === selectedLocationId);
     return index >= 0 ? locations[index] : null;
   }
 )
 
-export const selectDaysWithSlotsState = createSelector(
+export const selectAppointmentDaysWithSlotsState = createSelector(
   selectFeatureAppointment,
   state => state.appointments.daysWithSlots
 )
 
-export const selectSelectedDateState = createSelector(
+export const selectAppointmentSelectedDateState = createSelector(
   selectFeatureAppointment,
   state => state.appointments.selectedDate
 )
 
-export const selectSelectedSlotState = createSelector(
-  selectDaysWithSlotsState,
-  selectSelectedDateState,
+export const selectAppointmentSelectedSlotState = createSelector(
+  selectAppointmentDaysWithSlotsState,
+  selectAppointmentSelectedDateState,
   (daysWithSlots, selectedDate) => {
     return daysWithSlots && selectedDate ? daysWithSlots.find(x => sameDateFromDate(x.day, selectedDate)) : null;
   }
 )
 
-export const selectClickedSlotState = createSelector(
+export const selectAppointmentClickedSlotState = createSelector(
   selectFeatureAppointment,
   state => state.appointments.clickedSlot
 )
 
-export const selectAppointmentState = createSelector(
-  selectSelectedSlotState,
-  selectClickedSlotState,
+export const selectAppointmentNewAppointmentState = createSelector(
+  selectAppointmentSelectedSlotState,
+  selectAppointmentClickedSlotState,
   (selectedSlot, slot) => {
     if(!selectedSlot) {
       return null;

@@ -1,33 +1,33 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { MovementsSelectorUtility } from 'src/app/models/movement';
-import { selectCardsState } from '../../cards/store/cards.selectors';
+import { selectCardCardsState } from '../../cards/store/cards.selectors';
 import { MovementState } from './movements.reducer';
 
 export const selectFeatureMovement = createFeatureSelector<{movements: MovementState}>('movements');
 
-export const selectLoadingState = createSelector(
+export const selectMovementLoadingState = createSelector(
   selectFeatureMovement,
   state => state.movements.loading
 )
 
-export const selectLoadingMovementsState = createSelector(
+export const selectMovementLoadingMovementsState = createSelector(
   selectFeatureMovement,
   state => state.movements.loadingMovements
 )
 
-export const selectShowChunkLenghtState = createSelector(
+export const selectMovementShowChunkLenghtState = createSelector(
   selectFeatureMovement,
   state => state.movements.showChunkLenght
 )
 
-export const selectSelectedCardIdState = createSelector(
+export const selectMovementSelectedCardIdState = createSelector(
   selectFeatureMovement,
   state => state.movements.selectedCardId
 )
 
-export const selectSelectedCardState = createSelector(
-  selectCardsState,
-  selectSelectedCardIdState,
+export const selectMovementSelectedCardState = createSelector(
+  selectCardCardsState,
+  selectMovementSelectedCardIdState,
   (cards, selectedCardId) => cards && selectedCardId ? cards.find(x => x._id === selectedCardId) : null
 )
 
@@ -36,22 +36,22 @@ export const selectMovementsState = createSelector(
   state => state.movements.movements
 )
 
-export const selectTotalState = createSelector(
+export const selectMovementTotalState = createSelector(
   selectFeatureMovement,
   state => state.movements.total
 )
 
-export const selectShouldLoadMoreState = createSelector(
+export const selectMovementShouldLoadMoreState = createSelector(
   selectMovementsState,
-  selectTotalState,
+  selectMovementTotalState,
   (movements, total) => total > movements.length
 )
 
-export const selectGetMovementsState = createSelector(
-  selectSelectedCardIdState,
+export const selectMovementGetMovementsState = createSelector(
+  selectMovementSelectedCardIdState,
   selectMovementsState,
-  selectShowChunkLenghtState,
-  selectLoadingMovementsState,
+  selectMovementShowChunkLenghtState,
+  selectMovementLoadingMovementsState,
   (cardId, movements, showChunkLenght, loadingMovements) => {
     const ret : MovementsSelectorUtility =
     {

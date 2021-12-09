@@ -28,6 +28,7 @@ export const MovementReducer = createReducer(
   on(selectCardId, (state, action) => ({
     ...state,
     selectedCardId: action.id,
+    movements: [],
     loadingMovements: true
   })),
 

@@ -6,12 +6,15 @@ export const selectCardId = createAction('[Movements] Select Card ID', props<{
 }>());
 
 //se concatLatestFrom fosse stata disponibile, non avrei dovuto passare alcun argomento
-export const getMovements = createAction('[Movements] Get'
+export const getMovements = createAction('[Movements] Get Movements'
 , props<MovementsSelectorUtility>()
 );
-export const getMovementsSuccess = createAction('[Movements] Get Success', props<{
+export const getMovementsSuccess = createAction('[Movements] Get  MovementsSuccess', props<{
   value: CardMovements
 }>());
-export const getMovementsFail = createAction('[Movements] Get Fail');
+export const getMovementsFail = createAction(
+  '[Movements] Get Movements Fail',
+  props<{ err: any }>()
+);
 
 export const loadMoreMovements = createAction('[Movements] Load More Movements');

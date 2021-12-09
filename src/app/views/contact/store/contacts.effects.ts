@@ -15,11 +15,16 @@ export class ContactsEffects {
     private notificationService: NotificationService
   ) {}
 
+  catchError$ = createEffect(() => this.actions.pipe(
+    ofType(loadContactsFail, deleteContactFail, addContactFail, editContactFail),
+    tap(err => console.error(err))
+  ), { dispatch: false })
+
   loadContacts$ = createEffect(() => this.actions.pipe(
     ofType(loadContacts),
     switchMap(() => this.contactsService.getContacts().pipe(
       map(contacts => loadContactsSuccess({ contacts })),
-      catchError(() => of(loadContactsFail()))
+      catchError(err => of(loadContactsFail({ err })))
     ))
   ))
 
@@ -27,7 +32,7 @@ export class ContactsEffects {
     ofType(deleteContact),
     mergeMap(({ id }) => this.contactsService.deleteContact(id).pipe(
       map(() => deleteContactSuccess({ id })),
-      catchError(() => of(deleteContactFail))
+      catchError(err => of(deleteContactFail({ err })))
     ))
   ))
 
@@ -38,7 +43,7 @@ export class ContactsEffects {
         console.log(res);
         return addContactSuccess({ contact: res });
       }),
-      catchError(() => of(addContactFail()))
+      catchError(err => of(addContactFail({ err })))
     ))
   ))
 
@@ -46,7 +51,7 @@ export class ContactsEffects {
     ofType(editContact),
     mergeMap(({ contact }) => this.contactsService.patchContact(contact).pipe(
       map(res => editContactSuccess({ contact: res })),
-      catchError(() => of(editContactFail))
+      catchError(err => of(editContactFail({ err })))
     ))
   ))
 

@@ -3,21 +3,27 @@ import { Contact } from 'src/app/models/contact';
 import { StateType } from './contacts.reducer';
 
 
-export const loadContacts = createAction('[Contacts] Load');
+export const loadContacts = createAction('[Contacts] Load Contacts');
 export const loadContactsSuccess = createAction(
-  '[Contacts] Load Success',
+  '[Contacts] Load Contacts Success',
   props<{ contacts: Contact[] }>()
 )
-export const loadContactsFail = createAction('[Contacts] Load Fail')
+export const loadContactsFail = createAction(
+  '[Contacts] Load Contacts Fail',
+  props<{ err: any }>()
+);
 
 export const deleteContact = createAction(
-  '[Contacts] Delete',
+  '[Contacts] Delete Contact',
   props<{ id: string }>());
 export const deleteContactSuccess = createAction(
-  '[Contacts] Delete Success',
+  '[Contacts] Delete Contact Success',
   props<{ id: string }>()
 )
-export const deleteContactFail = createAction('[Contacts] Delete Fail')
+export const deleteContactFail = createAction(
+  '[Contacts] Delete Contact Fail',
+  props<{ err: any }>()
+);
 
 export const setState = createAction(
   '[Contacts] Set State',
@@ -25,19 +31,25 @@ export const setState = createAction(
 )
 
 export const addContact = createAction(
-  '[Contacts] Add',
+  '[Contacts] Add Contact',
   props<{ contact: Partial<Contact> }>());
 export const addContactSuccess = createAction(
-  '[Contacts] Add Success',
+  '[Contacts] Add Contact Success',
   props<{ contact: Contact }>()
 )
-export const addContactFail = createAction('[Contacts] Add Fail')
+export const addContactFail = createAction(
+  '[Contacts] Add Contact Fail',
+  props<{ err: any }>()
+);
 
 export const editContact = createAction(
-  '[Contacts] Edit',
+  '[Contacts] Edit Contact',
   props<{ contact: Partial<Contact> }>());
 export const editContactSuccess = createAction(
-  '[Contacts] Edit Success',
+  '[Contacts] Edit Contact Success',
   props<{ contact: Contact }>()
 )
-export const editContactFail = createAction('[Contacts] Edit Fail')
+export const editContactFail = createAction(
+  '[Contacts] Edit Contact Fail',
+  props<{ err: any }>()
+);

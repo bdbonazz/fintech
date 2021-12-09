@@ -5,24 +5,24 @@ import { ContactState } from './contacts.reducer';
 
 export const selectFeatureContact = createFeatureSelector<{contacts: ContactState}>('contacts');
 
-export const selectContactsState = createSelector(
+export const selectContactContactsState = createSelector(
   selectFeatureContact,
   state => state.contacts.contacts
 );
 
-export const selectLoadingState = createSelector(
+export const selectContactLoadingState = createSelector(
   selectFeatureContact,
   state => state.contacts.loading
 )
 
-export const selectStateState = createSelector(
+export const selectContactStateState = createSelector(
   selectFeatureContact,
   state => state.contacts.stateType
 )
 
-export const selectSelectedContactState = createSelector(
-  selectContactsState,
-  selectStateState,
+export const selectContactSelectedContactState = createSelector(
+  selectContactContactsState,
+  selectContactStateState,
   (contacts, state) => {
     if(state.type === 'new' || !contacts || !contacts.length) {
       return null;
@@ -33,9 +33,9 @@ export const selectSelectedContactState = createSelector(
   }
 )
 
-export const selectChoosenContactState = createSelector(
-  selectSelectedContactState,
-  selectStateState,
+export const selectContactChoosenContactState = createSelector(
+  selectContactSelectedContactState,
+  selectContactStateState,
   (selectedContact, state) => selectedContact && state.type === 'list' ? selectedContact : null
 )
 

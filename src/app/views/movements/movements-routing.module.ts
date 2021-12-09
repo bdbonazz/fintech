@@ -4,7 +4,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { MovementsComponent } from './movements.component';
 
 const routes: Routes = [
-  { path: '/:cardId', component: MovementsComponent },
+  { path: ':cardId', component: MovementsComponent },
   { path: '', component: MovementsComponent }
 ];
 

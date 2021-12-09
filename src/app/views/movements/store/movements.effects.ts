@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { of } from 'rxjs';
-import { catchError, filter, map, switchMap } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
 import { CardsService } from 'src/app/api/cards.service';
-import { getMovements, getMovementsFail, getMovementsSuccess } from './movements.actions';
+import { go } from 'src/app/store/router.actions';
+import { getMovements, getMovementsFail, getMovementsSuccess, selectCardId } from './movements.actions';
 
 
 @Injectable()
@@ -12,6 +13,11 @@ export class MovementsEffects {
     private actions: Actions,
     private cardService: CardsService
   ) {}
+
+  catchError$ = createEffect(() => this.actions.pipe(
+    ofType(getMovementsFail),
+    tap(err => console.error(err))
+  ), { dispatch: false })
 
 /*
   selectCardId$ = createEffect(() => this.actions.pipe(
@@ -47,8 +53,16 @@ ma quella libreria richiede angular 12, aggiornare questo progetto ad angular 12
         selectGetMovement.movements.length
          ).pipe(
           map(res => getMovementsSuccess({ value: res})),
-          catchError(() => of(getMovementsFail()))
+          catchError(err => of(getMovementsFail({ err })))
         )
+    })
+  ))
+
+  go$ = createEffect(() => this.actions.pipe(
+    ofType(go),
+    map(router => {
+      const cardId = router.path[router.path.length - 1];
+      return selectCardId({id: cardId});
     })
   ))
 

@@ -3,22 +3,22 @@ import { CardState } from './cards.reducer';
 
 export const selectFeatureCard = createFeatureSelector<{cards: CardState}>('cards');
 
-export const selectCardsState = createSelector(
+export const selectCardCardsState = createSelector(
   selectFeatureCard,
   state => state.cards.cards
 );
 
-export const selectLoadingState = createSelector(
+export const selectCardLoadingState = createSelector(
   selectFeatureCard,
   state => state.cards.loading
 )
 
-export const selectOpenedDrawerState = createSelector(
+export const selectCardOpenedDrawerState = createSelector(
   selectFeatureCard,
   state => state.cards.openedDrawer
 )
 
-export const selectClearCountState = createSelector(
+export const selectCardClearCountState = createSelector(
   selectFeatureCard,
   state => state.cards.clearCount
 )

@@ -8,12 +8,15 @@ export const setDrawer = createAction(
 export const openDrawer = createAction('[Cards] Open Drawer');
 export const closeDrawer = createAction('[Cards] Close Drawer');
 
-export const loadCards = createAction('[Cards] Load');
+export const loadCards = createAction('[Cards] Load Cards');
 export const loadCardsSuccess = createAction(
-  '[Cards] Load Success',
+  '[Cards] Load Cards Success',
   props<{ cards: Card[] }>()
-)
-export const loadCardsFail = createAction('[Cards] Load Fail')
+);
+export const loadCardsFail = createAction(
+  '[Cards] Load Cards Fail',
+  props<{ err: any }>()
+);
 
 
 export const goToCardDetail = createAction('[Cards] Go To Detail', props<{
@@ -27,13 +30,19 @@ export const deleteCard = createAction('[Cards] Delete', props<{
 export const deleteCardSuccess = createAction('[Cards] Delete Success', props<{
   id: string
 }>());
-export const deleteCardFail = createAction('[Cards] Delete Fail');
+export const deleteCardFail = createAction(
+  '[Cards] Delete Fail',
+  props<{ err: any }>()
+);
 
 
-export const addCard = createAction('[Cards] Add', props<{
+export const addCard = createAction('[Cards] Add Card', props<{
   card: CardForm
 }>());
-export const addCardSuccess = createAction('[Cards] Add Success', props<{
+export const addCardSuccess = createAction('[Cards] Add Card Success', props<{
   card: Card
 }>());
-export const addCardFail = createAction('[Cards] Add Fail');
+export const addCardFail = createAction(
+  '[Cards] Add Card Fail',
+  props<{ err: any }>()
+);
